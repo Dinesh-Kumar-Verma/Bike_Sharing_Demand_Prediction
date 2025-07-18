@@ -1,0 +1,41 @@
+# -----------------------------------------------------------------------------
+# .gitattributes for Bike_Sharing_Demand_Prediction
+# Ensures consistent line endings and proper handling of text/binary files
+# -----------------------------------------------------------------------------
+
+# Normalize all text files to LF (Unix-style)
+* text=auto eol=lf
+
+# Explicitly mark common text file types
+*.py        text eol=lf
+*.ipynb     text eol=lf
+*.md        text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.toml      text eol=lf
+*.json      text eol=lf
+*.csv       text eol=lf
+*.tsv       text eol=lf
+*.txt       text eol=lf
+*.html      text eol=lf
+*.css       text eol=lf
+*.js        text eol=lf
+
+# 📦 Mark binary files (Git won’t try to normalize them)
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.pdf       binary
+*.pkl       binary
+*.joblib    binary
+*.zip       binary
+
+# Prevent accidental execution bit changes (on Linux)
+*.sh        text eol=lf
+*.ps1       text eol=crlf
+
+# 🗂 Ignore Mac and Windows system files
+.DS_Store   text eol=lf
+Thumbs.db   text eol=lf

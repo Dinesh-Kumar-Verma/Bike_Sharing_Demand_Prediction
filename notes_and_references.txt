@@ -1,0 +1,95 @@
+https://colab.research.google.com/drive/1NjNhZnRSwpDYfndTia2YiHdBsBGx6EF5#scrollTo=8yEUt7NnHlrM
+
+Hypothesis Testing Mind Map (Text Version)
+Here is a clear, structured textual mind map summarizing hypothesis testing concepts, the main types of tests, and their associated assumptions. This outline mimics a visual mind map using bullet points and indentation for clarity.
+
+Hypothesis Testing
+Purpose: Decide if evidence from a sample supports a specific claim about a population.
+
+1. Key Concepts
+Null Hypothesis (H₀): No effect/difference.
+
+Alternative Hypothesis (H₁): There is an effect/difference.
+
+Significance Level (α): Probability threshold, e.g., 0.05.
+
+P-Value: Evidence strength against H₀.
+
+2. Types of Hypothesis Tests
+Parametric Tests
+
+Assumptions:
+
+Data is normally distributed
+
+Homogeneity of variance
+
+Interval/ratio scale data
+
+Examples:
+
+t-test (2 groups)
+
+ANOVA (3+ groups)
+
+Pearson correlation
+
+Non-Parametric Tests
+
+Assumptions:
+
+No specific distribution required
+
+For ordinal, skewed, or categorical data
+
+Examples:
+
+Mann-Whitney U (2 groups)
+
+Kruskal-Wallis (3+ groups)
+
+Wilcoxon Signed-Rank (paired)
+
+Chi-square (categorical data)
+
+Spearman correlation
+
+3. Decision Path for Choosing a Test
+Data Type:
+
+Numerical, categorical, or ordinal?
+
+Number of Groups:
+
+2 groups → t-test or Mann-Whitney U
+
+3+ groups → ANOVA or Kruskal-Wallis
+
+Assumptions Met?
+
+Check normality and variance for parametric tests
+
+Use non-parametric if assumptions not met
+
+4. Associated Assumptions
+Normality: Data in each group should be approximately normal (for parametric).
+
+Equal Variance: Variances should be similar across groups (Levene/Bartlett test).
+
+Independence: Data points should be independent of each other.
+
+5. Typical Steps
+Formulate null and alternative hypotheses.
+
+Choose the correct statistical test.
+
+Check test assumptions (normality, equal variance).
+
+Calculate test statistic and p-value.
+
+Compare p-value to α to accept or reject H₀.
+
+Interpret the result in context.
+
+This structured outline captures the essence of a mind map and can be easily used for quick review or interview preparation related to hypothesis testing and its core assumptions. If you would like a graphic mind map as an image, please let me know!
+

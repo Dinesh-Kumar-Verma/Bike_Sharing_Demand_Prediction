@@ -2,20 +2,18 @@ import os
 import boto3
 import gdown
 from botocore.exceptions import NoCredentialsError, ClientError
+from pathlib import Path
 from src.utils.logger import get_logger
+from src.utils.config import RAW_DATA_FILE
 
 # Initialize logger
 logger = get_logger("data_fetcher", "utils_data_fetcher.log")
-
-# Create raw data directory if not exists
-RAW_DATA_DIR = "data/raw"
-os.makedirs(RAW_DATA_DIR, exist_ok=True)
 
 def fetch_raw_data(source, file_name, gdrive_url=None, s3_bucket=None, s3_key=None):
     """
     Fetch raw data from Google Drive or AWS S3.
 
-    Parameters:
+    Parameters
     ----------
     source : str
         Data source: 'gdrive' or 's3'
@@ -28,12 +26,16 @@ def fetch_raw_data(source, file_name, gdrive_url=None, s3_bucket=None, s3_key=No
     s3_key : str, optional
         S3 object key/path (for s3 source)
 
-    Returns:
+    Returns
     -------
     str
         Path to the downloaded raw data file
     """
-    output_path = os.path.join(RAW_DATA_DIR, file_name)
+    if source not in ("gdrive", "s3"):
+        logger.error("Invalid source specified. Must be 'gdrive' or 's3'.")
+        raise ValueError("Source must be 'gdrive' or 's3'")
+
+    output_path = RAW_DATA_FILE
 
     try:
         if source == "gdrive":
@@ -42,7 +44,10 @@ def fetch_raw_data(source, file_name, gdrive_url=None, s3_bucket=None, s3_key=No
                 raise ValueError("Google Drive URL must be provided for gdrive source")
 
             logger.info(f"Downloading {file_name} from Google Drive...")
-            gdown.download(url= gdrive_url, output= output_path, fuzzy=True)
+            result = gdown.download(url=gdrive_url, output=str(output_path), fuzzy=True)
+            if not result:
+                logger.error("Failed to download from Google Drive.")
+                raise RuntimeError("gdown failed to download file")
             logger.info(f"Downloaded {file_name} to {output_path}")
 
         elif source == "s3":
@@ -55,12 +60,10 @@ def fetch_raw_data(source, file_name, gdrive_url=None, s3_bucket=None, s3_key=No
             s3.download_file(s3_bucket, s3_key, output_path)
             logger.info(f"Downloaded {file_name} to {output_path}")
 
-        else:
-            logger.error("Invalid source specified. Must be 'gdrive' or 's3'")
-            raise ValueError("Source must be 'gdrive' or 's3'")
+        return output_path
 
     except NoCredentialsError as e:
-        logger.exception("AWS credentials not found. Check your .env or config.")
+        logger.exception("AWS credentials not found. Check your .env or AWS config.")
         raise e
     except ClientError as e:
         logger.exception("AWS S3 client error occurred.")
@@ -68,5 +71,3 @@ def fetch_raw_data(source, file_name, gdrive_url=None, s3_bucket=None, s3_key=No
     except Exception as e:
         logger.exception(f"Unexpected error occurred while fetching data from {source}")
         raise e
-
-    return output_path
