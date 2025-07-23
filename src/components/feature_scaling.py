@@ -28,7 +28,7 @@ def check_skewness(df, target_col):
 
 def feature_scaling():
     logger.info('\n' + '-' * 80)
-    logger.info('🚀 Starting Data Transformation and Feature Scaling...')
+    logger.info('Starting Data Transformation and Feature Scaling...')
 
     try:
         # Load feature engineered data

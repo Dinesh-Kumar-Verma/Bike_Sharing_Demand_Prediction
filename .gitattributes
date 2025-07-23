@@ -21,7 +21,7 @@
 *.css       text eol=lf
 *.js        text eol=lf
 
-# 📦 Mark binary files (Git won’t try to normalize them)
+# Mark binary files (Git won’t try to normalize them)
 *.png       binary
 *.jpg       binary
 *.jpeg      binary

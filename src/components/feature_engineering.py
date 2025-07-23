@@ -26,6 +26,7 @@ def calc_vif(X, output_file):
     except Exception as e:
         logger.exception(f"Error while calculating VIF: {e}")
         raise
+    
 
 def feature_engineering():
     logger.info('\n' + '-' * 80)

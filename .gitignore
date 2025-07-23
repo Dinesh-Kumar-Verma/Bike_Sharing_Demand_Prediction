@@ -199,9 +199,11 @@ test.py
 # logs file
 logs
 
-# data
-data
+# Ignore data folder
+data/
 
 test.py
 test.ipynb
 notes_and_references.txt
+
+mlruns/
