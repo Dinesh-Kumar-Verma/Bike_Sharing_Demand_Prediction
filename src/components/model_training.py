@@ -9,6 +9,8 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, TimeSeriesSplit
 from sklearn.base import BaseEstimator
 from typing import Dict, Any
+from pathlib import Path
+import joblib
 
 from xgboost import XGBRegressor, XGBClassifier
 from lightgbm import LGBMRegressor, LGBMClassifier
@@ -203,9 +205,9 @@ def run_experiment():
         X_train, y_train, X_val, y_val,
         model_configs=model_configs,
         search_type="random",
-        n_iter=20,
+        n_iter=5,
         is_time_series=True,
-        n_splits=5,
+        n_splits=2,
         log_to_mlflow=True
     )
 
@@ -213,27 +215,44 @@ def run_experiment():
 
 
 
-def train_final_model(best_model):
+def train_final_model(best_model, best_model_name):
+    # Load training and validation data
     X_train = load_csv(X_TRAIN_FILE)
     y_train = load_csv(Y_TRAIN_FILE).squeeze()
     X_val = load_csv(X_VAL_FILE)
     y_val = load_csv(Y_VAL_FILE).squeeze()
 
+    # Concatenate train and validation sets
     X_train_val = pd.concat([X_train, X_val])
     y_train_val = pd.concat([y_train, y_val])
 
+    # Fit the final model
     best_model.fit(X_train_val, y_train_val)
-    logger.info("Final model retrained on train + validation set.")
+    logger.info("Final model retrained on combined train + validation set.")
 
-    return best_model
+    # Save the model using pathlib
+    model_dir = Path("artifacts") / "models"
+    model_dir.mkdir(parents=True, exist_ok=True)
+    model_path = model_dir / f"{best_model_name}_final_model.pkl"
+    joblib.dump(best_model, model_path)
+    logger.info(f"Saved final model at {model_path}")
+
+    # Log model to MLflow
+    with mlflow.start_run(run_name=f"{best_model_name}_FinalModel"):
+        mlflow.log_artifact(str(model_path), artifact_path="final_model")
+        mlflow.log_params(best_model.get_params())
+        _log_model_with_mlflow(best_model, best_model_name, X_train_val.head(2).astype(np.float64))
+
+    return best_model, model_path
 
 
 # ----------------- Main Execution -------------------
 
 def main():
     best_model, best_model_name, best_params = run_experiment()
-    final_model = train_final_model(best_model)
+    logger.info(f"Best model: {best_model_name} with parameters: {best_params}")
+    final_model, model_path = train_final_model(best_model, best_model_name)
+    return final_model, model_path, best_model_name
 
 if __name__ == "__main__":
-    main()
-
+    final_model, model_path, best_model_name = main()

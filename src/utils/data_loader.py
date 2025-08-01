@@ -28,7 +28,7 @@ def load_csv(filepath, sep=',', encoding='latin'):
         df = pd.read_csv(filepath, sep=sep, encoding=encoding)
         
         # Log successful loading
-        logger.info("Data successfully loaded from %s", filepath)
+        #logger.info("Data successfully loaded from %s", filepath)
         
         # Return the DataFrame to the caller
         return df

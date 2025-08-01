@@ -34,6 +34,11 @@ def split_data(df: pd.DataFrame, target_column: str, train_size=0.7, val_size=0.
             X_temp, y_temp, train_size=val_relative_size, shuffle=False, random_state=random_state
         )
 
+        # Add assertions for integrity check
+        assert len(X_train) == len(y_train), "Mismatch in training set"
+        assert len(X_val) == len(y_val), "Mismatch in validation set"
+        assert len(X_test) == len(y_test), "Mismatch in test set"
+        logger.info("Assertion checks passed: All splits are aligned.")
         logger.info("Completed Train/Val/Test split.")
         return X_train, y_train, X_val, y_val, X_test, y_test
 
@@ -105,12 +110,6 @@ def main():
         X_train, y_train, X_val, y_val, X_test, y_test = split_data(
             df, target_column="rented_bike_count"
         )
-
-        # Add assertions for integrity check
-        assert len(X_train) == len(y_train), "Mismatch in training set"
-        assert len(X_val) == len(y_val), "Mismatch in validation set"
-        assert len(X_test) == len(y_test), "Mismatch in test set"
-        logger.info("Assertion checks passed: All splits are aligned.")
 
         #save_split_data(X_train, y_train, X_val, y_val, X_test, y_test)
 

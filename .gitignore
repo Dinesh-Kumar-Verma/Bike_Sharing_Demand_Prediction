@@ -207,3 +207,7 @@ test.ipynb
 notes_and_references.txt
 
 mlruns/
+/data
+
+artifacts/
+S3/
