@@ -1,82 +1,87 @@
 import pandas as pd
 import numpy as np
 from src.utils.logger import get_logger
+from src.utils.data_loader import load_csv
+from src.utils.data_splitter import split_data, save_split_data
 from sklearn.preprocessing import PowerTransformer, RobustScaler
-from src.utils.config import PROCESSED_FEATURES_FILE, SCALED_DATA_FILE, X_FEATURES_FILE, Y_TARGET_FILE
+from sklearn.pipeline import Pipeline
+import joblib
+from src.utils.config import (
+    PROCESSED_FEATURES_FILE,
+    SCALED_DATA_FILE,
+)
 
 logger = get_logger(name='feature_scaling', log_file='feature_scaling.log')
 
 def check_skewness(df, target_col):
-    """
-    Logs skewness of different transformations on target variable.
-    """
     try:
         original_skew = df[target_col].skew()
         logger.info(f"Original skewness of {target_col}: {original_skew:.4f}")
 
-        log_skew = np.log(df[target_col]).skew()
-        logger.info(f"Log Transformation skewness: {log_skew:.4f}")
+        if (df[target_col] <= 0).any():
+            logger.warning(f"Skipped log/sqrt skewness — {target_col} contains zero or negative values.")
+        else:
+            log_skew = np.log(df[target_col]).skew()
+            logger.info(f"Log Transformation skewness: {log_skew:.4f}")
 
-        log1p_skew = np.log1p(df[target_col]).skew()
-        logger.info(f"Log1p Transformation skewness: {log1p_skew:.4f}")
+            log1p_skew = np.log1p(df[target_col]).skew()
+            logger.info(f"Log1p Transformation skewness: {log1p_skew:.4f}")
 
-        sqrt_skew = np.sqrt(df[target_col]).skew()
-        logger.info(f"Sqrt Transformation skewness: {sqrt_skew:.4f}")
+            sqrt_skew = np.sqrt(df[target_col]).skew()
+            logger.info(f"Sqrt Transformation skewness: {sqrt_skew:.4f}")
 
     except Exception as e:
         logger.exception(f"Error while checking skewness: {e}")
+
 
 def feature_scaling():
     logger.info('\n' + '-' * 80)
     logger.info('Starting Data Transformation and Feature Scaling...')
 
     try:
-        # Load feature engineered data
-        df = pd.read_csv(PROCESSED_FEATURES_FILE)
+        # Load feature-engineered data
+        df = load_csv(PROCESSED_FEATURES_FILE)
         logger.info(f"Loaded feature-engineered data from {PROCESSED_FEATURES_FILE}")
 
-        # Numerical Features
-        numerical_features = [
-            'temperature', 'humidity', 'wind_speed', 'visibility',
-            'solar_radiation', 'rainfall', 'snowfall'
-        ]
-        target_col = 'rented_bike_count'
+        # Define numerical features
+        numerical_features = ['temperature', 'humidity', 'wind_speed', 'visibility',
+                              'solar_radiation', 'rainfall', 'snowfall']
+        target_column = 'rented_bike_count'
+            
+        # Split into X/y
+        X_train, y_train, X_val, y_val, X_test, y_test = split_data(df, target_column=target_column)
 
-        # Scale numerical features using PowerTransformer
-        pt = PowerTransformer()
-        df[numerical_features] = pt.fit_transform(df[numerical_features])
-        logger.info("Applied PowerTransformer to numerical features.")
+        # Fit transform on training set
+        pipeline = Pipeline([
+            ('power', PowerTransformer(),),
+            ('robust', RobustScaler(unit_variance=True))
+        ])
+        X_train[numerical_features] = pipeline.fit_transform(X_train[numerical_features])
+        X_val[numerical_features] = pipeline.transform(X_val[numerical_features])
+        X_test[numerical_features] = pipeline.transform(X_test[numerical_features])
+        logger.info("Applied PowerTransformer + RobustScaler pipeline on numerical features.")
+        
+        # After fitting the pipeline
+        joblib.dump(pipeline, SCALED_DATA_FILE)  # Save pipeline
+        logger.info("Saved transformation pipeline to %s", SCALED_DATA_FILE)
 
-        # Log skewness of target variable
-        check_skewness(df, target_col)
+        # Log and transform the target
+        check_skewness(y_train.to_frame(), target_column)
+        y_train = np.log1p(y_train)
+        y_val = np.log1p(y_val)
+        y_test = np.log1p(y_test)
+        logger.info("Applied log1p transformation on target: %s", target_column)
 
-        # Apply log1p transformation to target variable
-        df[target_col] = np.log1p(df[target_col])
-        logger.info(f"Applied log1p transformation to {target_col}.")
+        # Save transformed splits if needed
+        save_split_data(X_train, y_train, X_val, y_val, X_test, y_test)
 
-        # Split into features and target
-        X = df.drop(columns=[target_col])
-        y = df[target_col]
 
-        # Scale features using RobustScaler
-        rs = RobustScaler(unit_variance=True)
-        X_scaled = rs.fit_transform(X)
-        X_scaled_df = pd.DataFrame(X_scaled, columns=X.columns)
-        logger.info("Applied RobustScaler to features.")
-
-        # Save scaled data
-        df.to_csv(SCALED_DATA_FILE, index=False)
-        X_scaled_df.to_csv(X_FEATURES_FILE, index=False)
-        y.to_csv(Y_TARGET_FILE, index=False)
-
-        logger.info(f"Saved scaled data to {SCALED_DATA_FILE}")
-        logger.info(f"Saved X features to {X_FEATURES_FILE}")
-        logger.info(f"Saved y target to {Y_TARGET_FILE}")
+        logger.info("Saved all transformed splits.")
 
     except Exception as e:
-        logger.exception("Failed during data scaling: %s", e)
+        logger.exception("Failed during feature scaling: %s", e)
 
     logger.info('Completed Feature Scaling.')
-
+    
 if __name__ == '__main__':
     feature_scaling()

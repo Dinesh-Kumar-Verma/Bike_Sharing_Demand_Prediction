@@ -1,8 +1,9 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split, TimeSeriesSplit
 from src.utils.logger import get_logger
+from src.utils.data_loader import load_csv
 from src.utils.config import (
-    PROCESSED_FEATURES_FILE,
+    PROCESSED_FILE,
     INTERIM_DATA_DIR,
     TIMESERIES_FOLDS_DIR,
     X_TRAIN_FILE, Y_TRAIN_FILE,
@@ -61,59 +62,71 @@ def save_split_data(X_train, y_train, X_val, y_val, X_test, y_test):
         raise
 
 
-def create_timeseries_folds(X_train, y_train, n_splits=5):
-    """
-    Create TimeSeriesSplit folds for hyperparameter tuning and save them.
-    """
-    logger.info("Creating TimeSeriesSplit folds for hyperparameter tuning...")
-    try:
-        TIMESERIES_FOLDS_DIR.mkdir(parents=True, exist_ok=True)
-        tscv = TimeSeriesSplit(n_splits=n_splits)
+# def create_timeseries_folds(X_train, y_train, n_splits=5):
+#     """
+#     Create TimeSeriesSplit folds for hyperparameter tuning and save them.
+#     """
+#     logger.info("Creating TimeSeriesSplit folds for hyperparameter tuning...")
+#     try:
+#         TIMESERIES_FOLDS_DIR.mkdir(parents=True, exist_ok=True)
+#         tscv = TimeSeriesSplit(n_splits=n_splits)
 
-        for idx, (train_idx, val_idx) in enumerate(tscv.split(X_train)):
-            fold_X_train = X_train.iloc[train_idx]
-            fold_y_train = y_train.iloc[train_idx]
-            fold_X_val = X_train.iloc[val_idx]
-            fold_y_val = y_train.iloc[val_idx]
+#         for idx, (train_idx, val_idx) in enumerate(tscv.split(X_train)):
+#             fold_X_train = X_train.iloc[train_idx]
+#             fold_y_train = y_train.iloc[train_idx]
+#             fold_X_val = X_train.iloc[val_idx]
+#             fold_y_val = y_train.iloc[val_idx]
 
-            # Save each fold to separate CSV files
-            fold_dir = TIMESERIES_FOLDS_DIR / f"fold_{idx + 1}"
-            fold_dir.mkdir(parents=True, exist_ok=True)
+#             # Save each fold to separate CSV files
+#             fold_dir = TIMESERIES_FOLDS_DIR / f"fold_{idx + 1}"
+#             fold_dir.mkdir(parents=True, exist_ok=True)
 
-            fold_X_train.to_csv(fold_dir / "X_train.csv", index=False)
-            fold_y_train.to_csv(fold_dir / "y_train.csv", index=False)
-            fold_X_val.to_csv(fold_dir / "X_val.csv", index=False)
-            fold_y_val.to_csv(fold_dir / "y_val.csv", index=False)
+#             fold_X_train.to_csv(fold_dir / "X_train.csv", index=False)
+#             fold_y_train.to_csv(fold_dir / "y_train.csv", index=False)
+#             fold_X_val.to_csv(fold_dir / "X_val.csv", index=False)
+#             fold_y_val.to_csv(fold_dir / "y_val.csv", index=False)
 
-            logger.info("Saved TimeSeriesSplit Fold %d", idx + 1)
+#             logger.info("Saved TimeSeriesSplit Fold %d", idx + 1)
 
-        logger.info("All TimeSeriesSplit folds created successfully.")
+#         logger.info("All TimeSeriesSplit folds created successfully.")
 
-    except Exception as e:
-        logger.exception("Failed to create TimeSeriesSplit folds: %s", e)
-        raise
+#     except Exception as e:
+#         logger.exception("Failed to create TimeSeriesSplit folds: %s", e)
+#         raise
 
 
-def main():
+def main(): 
     logger.info("-" * 80)
     logger.info("Running Data Splitter Pipeline...")
-    try:
-        df = pd.read_csv(PROCESSED_FEATURES_FILE)
-        logger.info("Loaded processed features from: %s", PROCESSED_FEATURES_FILE)
 
+    try:
+        df = load_csv(PROCESSED_FILE)
+        
         X_train, y_train, X_val, y_val, X_test, y_test = split_data(
             df, target_column="rented_bike_count"
         )
 
-        save_split_data(X_train, y_train, X_val, y_val, X_test, y_test)
+        # Add assertions for integrity check
+        assert len(X_train) == len(y_train), "Mismatch in training set"
+        assert len(X_val) == len(y_val), "Mismatch in validation set"
+        assert len(X_test) == len(y_test), "Mismatch in test set"
+        logger.info("Assertion checks passed: All splits are aligned.")
 
-        create_timeseries_folds(X_train, y_train, n_splits=5)
+        #save_split_data(X_train, y_train, X_val, y_val, X_test, y_test)
+
+        logger.info("Data Splitter Pipeline completed successfully.")
+        return X_train, y_train, X_val, y_val, X_test, y_test
+
+    except AssertionError as ae:
+        logger.error("Assertion failed: %s", ae)
+        raise  # Re-raise to make it visible in CI/CD or pipeline failure
 
     except Exception as e:
-        logger.error("Data Splitter Pipeline failed: %s", e)
+        logger.exception("Data Splitter Pipeline failed: %s", e)
+        raise
 
-    logger.info("Data Splitter Pipeline completed successfully.")
-    logger.info("-" * 80)
+    
+
 
 
 if __name__ == "__main__":

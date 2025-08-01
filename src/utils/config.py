@@ -14,7 +14,7 @@ TIMESERIES_FOLDS_DIR = INTERIM_DATA_DIR / 'timeseries_folds'
 # File paths
 RAW_DATA_FILE = RAW_DATA_DIR / "bike_sharing_data.csv"
 PROCESSED_FILE = PROCESSED_DATA_DIR / "bike_sharing_data_processed.csv"
-PROCESSED_FEATURES_FILE = PROCESSED_DATA_DIR / "bike_sharing_data_features.csv"
+PROCESSED_FEATURES_FILE = PROCESSED_DATA_DIR / "bike_sharing_data_features.csv" # File after feature engineering
 SCALED_DATA_FILE = PROCESSED_DATA_DIR / "bike_sharing_data_scaled.csv"
 X_FEATURES_FILE = PROCESSED_DATA_DIR / 'X_features.csv'
 Y_TARGET_FILE = PROCESSED_DATA_DIR / 'Y_target.csv'

@@ -85,6 +85,8 @@ def feature_engineering():
         logger.exception("Failed during feature engineering: %s", e)
 
     logger.info('Completed feature_engineering.')
+    
+    return df
 
 if __name__ == '__main__':
     feature_engineering()
