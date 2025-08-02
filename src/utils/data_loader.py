@@ -1,5 +1,8 @@
 import pandas as pd
 from src.utils.logger import get_logger
+from pathlib import Path
+from src.utils.config import BASE_DIR
+
 
 # Initialize a logger specific for data loading tasks
 logger = get_logger('data_loader')
@@ -21,20 +24,22 @@ def load_csv(filepath, sep=',', encoding='latin'):
         Exception: If loading fails, raises the original exception after logging the error.
     """
     try:
+        rel_path = Path(filepath).relative_to(BASE_DIR)
+        
         # Log the start of the loading process
-        logger.info("Loading data from %s", filepath)
+        # logger.info("Loading data from %s", filepath)
         
         # Read the CSV file into a DataFrame
         df = pd.read_csv(filepath, sep=sep, encoding=encoding)
         
         # Log successful loading
-        #logger.info("Data successfully loaded from %s", filepath)
+        logger.info("Data successfully loaded from %s", rel_path)
         
         # Return the DataFrame to the caller
         return df
     
     except Exception as e:
         # Log the error with details if something goes wrong
-        logger.error("Failed to load data from %s: %s", filepath, e)
+        logger.error("Failed to load data from %s: %s", rel_path, e)
         # Re-raise the exception to propagate it up the call stack
         raise
