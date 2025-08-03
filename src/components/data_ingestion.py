@@ -2,6 +2,8 @@
 
 from src.utils.logger import get_logger
 from src.utils.data_fetcher import fetch_raw_data
+from src.utils.config import BASE_DIR
+
 
 
 class DataIngestion:

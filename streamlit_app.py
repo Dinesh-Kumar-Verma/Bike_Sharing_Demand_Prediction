@@ -1,61 +1,54 @@
 import streamlit as st
-from app.utils import load_model, load_pipeline, preprocess_input
 import numpy as np
+from datetime import datetime
 
 st.set_page_config(page_title="Bike Demand Predictor", layout="centered")
 
 st.title("🚲 Bike Sharing Demand Prediction")
-st.markdown("Predict the expected number of bike rentals based on input conditions.")
+st.markdown("Bike Sharing Demand Prediction")
 
-# Load model and pipeline
-model = load_model()
-pipeline = load_pipeline()
+# # Load model and pipeline
+# model = load_model()
+# pipeline = load_pipeline()
 
-# --- UI Input ---
-season = st.selectbox("Season", [1, 2, 3, 4])
-holiday = st.selectbox("Is Holiday?", [0, 1])
-workingday = st.selectbox("Is Working Day?", [0, 1])
-weather = st.selectbox("Weather", [1, 2, 3, 4])
-temp = st.number_input("Temperature (°C)", min_value=-10.0, max_value=50.0, value=22.0)
-atemp = st.number_input("Feels Like Temperature (°C)", min_value=-10.0, max_value=50.0, value=24.0)
-humidity = st.slider("Humidity (%)", 0, 100, 60)
-windspeed = st.slider("Windspeed", 0.0, 100.0, 10.0)
-hour = st.slider("Hour of Day", 0, 23, 9)
-
-if st.button("Predict Demand"):
-    user_input = {
-        "season": season,
-        "holiday": holiday,
-        "workingday": workingday,
-        "weather": weather,
-        "temp": temp,
-        "atemp": atemp,
-        "humidity": humidity,
-        "windspeed": windspeed,
-        "hour": hour
-    }
+with st.form("input_form"):
+    date = st.date_input("Date", value=datetime.today())
+    hour = st.slider("Hour of Day", 0, 23)
+    temperature = st.number_input("Temperature (°C)", value=20.0)
+    humidity = st.number_input("Humidity (%)", value=60.0)
+    wind_speed = st.number_input("Wind Speed (m/s)", value=2.0)
+    visibility = st.number_input("Visibility (10m)", value=2000.0)
+    dew_point_temp = st.number_input("Dew Point Temperature (°C)", value=10.0)
+    solar_radiation = st.number_input("Solar Radiation (MJ/m2)", value=0.0)
+    rainfall = st.number_input("Rainfall (mm)", value=0.0)
+    snowfall = st.number_input("Snowfall (cm)", value=0.0)
+    seasons = st.selectbox("Season", ["Spring", "Summer", "Autumn", "Winter"])
+    holiday = st.selectbox("Holiday", ["No Holiday", "Holiday"])
+    functioning_day = st.selectbox("Functioning Day", ["Yes", "No"])
     
-    X = preprocess_input(user_input, pipeline)
-    pred = model.predict(X)
-    bike_count = int(np.expm1(pred[0]))  # reverse log1p
+    submitted = st.form_submit_button("Predict")
 
-    st.success(f"🔮 Estimated bike demand: **{bike_count} bikes**")
+if submitted:
+    input_dict = {
+        'Date': str(date),
+        'Hour': hour,
+        'Temperature(°C)': temperature,
+        'Humidity(%)': humidity,
+        'Wind speed (m/s)': wind_speed,
+        'Visibility (10m)': visibility,
+        'Dew point temperature(°C)': dew_point_temp,
+        'Solar Radiation (MJ/m2)': solar_radiation,
+        'Rainfall(mm)': rainfall,
+        'Snowfall (cm)': snowfall,
+        'Seasons': seasons,
+        'Holiday': holiday,
+        'Functioning Day': functioning_day
+    }
+
+    # prediction = predict_bike_demand(input_dict)
+    st.success(f"🔮 Predicted Rented Bike Count: **{int(prediction)}**")
+    
+
+ 
 
 
-import joblib
-import numpy as np
-import pandas as pd
-from pathlib import Path
-
-MODEL_PATH = Path("artifacts/models/LightGBM_final_model.pkl")
-PIPELINE_PATH = Path("artifacts/transformers/preprocessing_pipeline.pkl")
-
-def load_model():
-    return joblib.load(MODEL_PATH)
-
-def load_pipeline():
-    return joblib.load(PIPELINE_PATH)
-
-def preprocess_input(user_input: dict, pipeline):
-    df = pd.DataFrame([user_input])
-    return pipeline.transform(df)

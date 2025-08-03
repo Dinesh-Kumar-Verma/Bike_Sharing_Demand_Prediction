@@ -211,3 +211,4 @@ mlruns/
 
 artifacts/
 S3/
+/artifacts

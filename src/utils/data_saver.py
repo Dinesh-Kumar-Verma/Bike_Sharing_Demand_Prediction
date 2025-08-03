@@ -51,6 +51,34 @@ def save_model(model, filepath) -> None:
         logger.exception("Failed to save model to: %s. Error: %s", str(path), e)
         raise
 
+
+def save_pipeline(pipeline, filename: str, directory: str = "artifacts") -> None:
+    """
+    Save a machine learning pipeline to the specified directory with logging.
+
+    Parameters:
+    - pipeline: The trained pipeline object to be saved.
+    - filename (str): Name of the file to save the pipeline as (e.g., 'model.pkl').
+    - directory (str): Target directory to save the pipeline. Defaults to 'artifacts'.
+    """
+    try:
+        # Create the directory if it doesn't exist
+        path = Path(directory)
+        path.mkdir(parents=True, exist_ok=True)
+
+        # Construct full path
+        filepath = path / filename
+        rel_path = Path(path).relative_to(BASE_DIR)
+
+        # Save pipeline
+        joblib.dump(pipeline, filepath)
+
+        logger.info(f"Pipeline successfully saved at: {rel_path}")
+
+    except Exception as e:
+        logger.error(f"Failed to save pipeline at {filepath}: {e}")
+        raise e
+
 def save_text(data: str, filepath) -> None:
     """
     Save a string (text) to a text file.
