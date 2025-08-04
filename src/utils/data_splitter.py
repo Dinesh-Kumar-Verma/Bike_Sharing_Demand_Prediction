@@ -3,7 +3,7 @@ from sklearn.model_selection import train_test_split, TimeSeriesSplit
 from src.utils.logger import get_logger
 from src.utils.data_loader import load_csv
 from src.utils.data_saver import save_split_data
-from src.utils.config import PROCESSED_FEATURES_FILE
+from src.utils.config import PROCESSED_FEATURES_FILE, RAW_DATA_FILE
 
 
 
@@ -98,6 +98,19 @@ class DataSplitter:
 
         logger.info("Time series splitting complete.")
         return X_train, y_train, X_val, y_val, X_test, y_test
+    
+    
+def main():
+    df = load_csv(RAW_DATA_FILE)
+    splitter = DataSplitter(mode='random')
+    X_train, y_train, X_val, y_val, X_test, y_test = splitter.split(df, target_column='Rented Bike Count')
+    save_split_data(X_train, y_train, X_val, y_val, X_test, y_test)
+    
+    
+
+
+
+
 
 
 # if __name__ == '__main__':

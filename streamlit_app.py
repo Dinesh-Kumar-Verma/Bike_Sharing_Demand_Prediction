@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 from datetime import datetime
+from src.utils.predictor import predict_bike_demand
 
 st.set_page_config(page_title="Bike Demand Predictor", layout="centered")
 
@@ -12,7 +13,7 @@ st.markdown("Bike Sharing Demand Prediction")
 # pipeline = load_pipeline()
 
 with st.form("input_form"):
-    date = st.date_input("Date", value=datetime.today())
+    date = (st.date_input("Date", value=datetime.today())).strftime("%d/%m/%Y")
     hour = st.slider("Hour of Day", 0, 23)
     temperature = st.number_input("Temperature (°C)", value=20.0)
     humidity = st.number_input("Humidity (%)", value=60.0)
@@ -45,10 +46,13 @@ if submitted:
         'Functioning Day': functioning_day
     }
 
-    # prediction = predict_bike_demand(input_dict)
+
+
+    prediction = predict_bike_demand(input_dict)
     st.success(f"🔮 Predicted Rented Bike Count: **{int(prediction)}**")
     
 
  
+
 
 

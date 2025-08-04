@@ -23,7 +23,6 @@ from src.utils.config import X_TRAIN_FILE, Y_TRAIN_FILE, X_VAL_FILE, Y_VAL_FILE
 
 logger = get_logger("training_pipeline")
 
-
 class ModelTrainer:
     def __init__(self, model_configs: Dict[str, Dict[str, Any]],
                  search_type: str = "random", n_iter: int = 10, n_splits: int = 3,

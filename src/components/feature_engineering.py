@@ -1,5 +1,6 @@
 from pathlib import Path
 import pandas as pd
+from sklearn.base import BaseEstimator, TransformerMixin
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 from src.utils.logger import get_logger
 from src.utils.data_saver import save_csv
@@ -9,7 +10,7 @@ from src.utils.config import CLEANED_FEATURE_FILE, PROCESSED_FEATURES_FILE
 logger = get_logger(name='feature_engineering', log_file='feature_engineering.log')
 
 
-class FeatureEngineer:
+class FeatureEngineer(BaseEstimator, TransformerMixin):
     def __init__(self, run_vif: bool = True, drop_features: list = None):
         """
         Initialize the feature engineer.
@@ -36,7 +37,12 @@ class FeatureEngineer:
             logger.info(f"VIF ({label}) saved at {vif_report_path.resolve()}")
 
         logger.info(f"\nVIF {label}:\n{vif}")
+    
         return vif
+    
+    def fit(self, X: pd.DataFrame, y=None):
+        return self
+
 
     def transform(self, df: pd.DataFrame, save_to: Path = None) -> pd.DataFrame:
         """
@@ -66,9 +72,9 @@ class FeatureEngineer:
             df.drop(['hour', 'month', 'weekday'], axis=1, inplace=True)
             logger.info('One-hot encoded hour, month, weekday and dropped originals.')
 
-        # 3. Clean column names
-        df.columns = [col.replace(' ', '_').replace('(', '').replace(')', '')
-                      .replace(',', '').replace("'", "") for col in df.columns]
+        # # 3. Clean column names
+        # df.columns = [col.replace(' ', '_').replace('(', '').replace(')', '')
+        #               .replace(',', '').replace("'", "") for col in df.columns]
 
         # 4. VIF calculation
         if self.run_vif:
@@ -106,9 +112,14 @@ class FeatureEngineer:
 
 def main():
     df_raw = pd.read_csv(CLEANED_FEATURE_FILE)
-    fe = FeatureEngineer(run_vif=True)
+    fe = FeatureEngineer(run_vif=False)
     df_transformed = fe.transform(df_raw, save_to=PROCESSED_FEATURES_FILE)
-    df_transformed = fe.transform(df_raw)
+    #df_transformed = fe.transform(df_raw)
+    # After final feature engineering
+    final_features = df_transformed.columns
+    final_features.to_series().to_csv("artifacts/final_features.csv", index=False)
+    
+
 
 if __name__ == '__main__':
     main()

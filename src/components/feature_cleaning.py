@@ -1,4 +1,5 @@
 import pandas as pd
+from sklearn.base import BaseEstimator, TransformerMixin
 from src.utils.logger import get_logger
 from src.utils.data_loader import load_csv
 from src.utils.config import RAW_DATA_FILE, CLEANED_FEATURE_FILE
@@ -6,16 +7,19 @@ from src.utils.data_saver import save_csv
 
 
 
-class FeatureCleaner:
+class FeatureCleaner(BaseEstimator, TransformerMixin):
     def __init__(self, log_file='feature_cleaning.log'):
         self.logger = get_logger(name='feature_cleaning', log_file=log_file)
 
-    def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+    def fit(self, X, y=None):
+        return self  # No fitting needed for stateless transformation
+
+    def transform(self, X):
         """
-        Transforms the input DataFrame.
-        Includes renaming columns and extracting date features.
+        Transforms the input DataFrame by renaming columns and extracting date features.
         """
         try:
+            df = X.copy()
             self.logger.info('\n' + '-' * 80)
             self.logger.info('Starting feature cleaning...')
             self.logger.info(f'Data received with shape: {df.shape}')
@@ -34,6 +38,7 @@ class FeatureCleaner:
 
     def _rename_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         self.logger.info('Renaming columns...')
+        df.columns = [col.strip() for col in df.columns]
         column_mapping = {
             'Date': 'date',
             'Rented Bike Count': 'rented_bike_count',
@@ -54,18 +59,17 @@ class FeatureCleaner:
 
     def _process_date_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         if 'date' not in df.columns:
-            self.logger.warning('No "date" column found. Skipping feature extraction.')
+            self.logger.warning('No "date" column found. Skipping date extraction.')
             return df
 
         self.logger.info('Processing date features...')
-        df['date'] = pd.to_datetime(df['date'], format='%d/%m/%Y')
+        df['date'] = pd.to_datetime(df['date'], format='%d/%m/%Y', errors='coerce')
         df['day'] = df['date'].dt.day
         df['year'] = df['date'].dt.year
         df['weekday'] = df['date'].dt.day_name()
         df['month'] = df['date'].dt.strftime('%b')
-        
-        return df.drop('date', axis=1)
 
+        return df.drop(columns=['date'], errors='ignore')
 
 
 if __name__ == '__main__':
@@ -74,3 +78,12 @@ if __name__ == '__main__':
     df_cleaned = raw_FeatureCleaner.transform(df_raw)
     save_csv(df_cleaned, CLEANED_FEATURE_FILE)
 
+# from sklearn.pipeline import Pipeline
+# from src.components.feature_cleaning import FeatureCleaner
+
+# feature_cleaning_pipeline = Pipeline([
+#     ('feature_cleaning', FeatureCleaner())
+# ])
+
+# # Sample use
+# # cleaned_df = feature_cleaning_pipeline.fit_transform(raw_df)

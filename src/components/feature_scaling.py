@@ -2,20 +2,23 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import PowerTransformer, RobustScaler
 from pathlib import Path
-from src.utils.data_splitter import DataSplitter
 from src.utils.data_saver import save_split_data
 from sklearn.pipeline import Pipeline
 import joblib
 from src.utils.logger import get_logger
+from sklearn.base import BaseEstimator, TransformerMixin
 from src.utils.config import BASE_DIR, PROCESSED_FEATURES_FILE, SCALER_PIPELINE_FILE
+from src.utils.data_splitter import DataSplitter
 
 logger = get_logger(name='feature_scaling', log_file='feature_scaling.log')
 
-class FeatureScaler:
-    def __init__(self, target_column: str = 'rented_bike_count'):
-        self.numerical_features = ['temperature', 'humidity', 'wind_speed', 'visibility',
-                                    'solar_radiation', 'rainfall', 'snowfall']
-        
+
+class FeatureScaler(BaseEstimator, TransformerMixin):
+    def __init__(self, numerical_features=None, target_column='rented_bike_count'):
+        if numerical_features is None:
+            numerical_features = ['temperature', 'humidity', 'wind_speed', 'visibility',
+                                  'solar_radiation', 'rainfall', 'snowfall']
+        self.numerical_features = numerical_features
         self.target_column = target_column
         self.pipeline = Pipeline([
             ('power', PowerTransformer()),
@@ -36,28 +39,18 @@ class FeatureScaler:
         except Exception as e:
             logger.exception(f"Error while checking skewness: {e}")
 
-    def fit_transform(self, X: pd.DataFrame, y: pd.Series = None):
-        try:
-            X_scaled = X.copy()
-            logger.info("Fitting and transforming numerical features...")
-            X_scaled[self.numerical_features] = self.pipeline.fit_transform(X[self.numerical_features])
-            self.fitted = True
-
-            if y is not None:
-                self.check_skewness(y)
-                y_transformed = np.log1p(y)
-                return X_scaled, y_transformed
-            return X_scaled
-        except Exception as e:
-            logger.exception("Error during fit_transform.")
-            raise
+    def fit(self, X: pd.DataFrame, y: pd.Series = None):
+        self.pipeline.fit(X[self.numerical_features])
+        self.fitted = True
+        if y is not None:
+            self.check_skewness(y)
+        return self
 
     def transform(self, X: pd.DataFrame, y: pd.Series = None):
         if not self.fitted:
             raise RuntimeError("Scaler must be fitted before calling transform.")
         try:
             X_scaled = X.copy()
-            logger.info("Transforming data using existing scaler pipeline...")
             X_scaled[self.numerical_features] = self.pipeline.transform(X[self.numerical_features])
             if y is not None:
                 y_transformed = np.log1p(y)
@@ -66,6 +59,9 @@ class FeatureScaler:
         except Exception as e:
             logger.exception("Error during transform.")
             raise
+
+    def fit_transform(self, X: pd.DataFrame, y: pd.Series = None):
+        return self.fit(X, y).transform(X, y)
 
     def inverse_transform_target(self, y_transformed: pd.Series):
         try:
@@ -92,12 +88,13 @@ class FeatureScaler:
             self.fitted = True
             logger.info(f"Scaler pipeline loaded from {rel_path}")
         except Exception as e:
-            logger.exception(f"Error while loading scaler pipeline.{e}")
+            logger.exception(f"Error while loading scaler pipeline. {e}")
             raise
 
 
+
 def main():
-    df = pd.read_csv(PROCESSED_FEATURES_FILE)
+    df = pd.read_csv(PROCESSED_FEATURES_FILE) 
     #splitter = DataSplitter(mode='timeseries')
     splitter = DataSplitter(mode='random')
     X_train, y_train, X_val, y_val, X_test, y_test = splitter.split(df, target_column='rented_bike_count')
