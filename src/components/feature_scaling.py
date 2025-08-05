@@ -2,72 +2,65 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import PowerTransformer, RobustScaler
 from pathlib import Path
-from src.utils.data_saver import save_split_data
+from src.utils.data_saver import save_split_data, save_csv
 from sklearn.pipeline import Pipeline
 import joblib
 from src.utils.logger import get_logger
 from sklearn.base import BaseEstimator, TransformerMixin
-from src.utils.config import BASE_DIR, PROCESSED_FEATURES_FILE, SCALER_PIPELINE_FILE
+from src.utils.config import BASE_DIR, PROCESSED_FEATURES_FILE, SCALER_PIPELINE_FILE, X_TRAIN_FILE, SCALED_DATA_FILE
 from src.utils.data_splitter import DataSplitter
 
 logger = get_logger(name='feature_scaling', log_file='feature_scaling.log')
 
 
 class FeatureScaler(BaseEstimator, TransformerMixin):
-    def __init__(self, numerical_features=None, target_column='rented_bike_count'):
+    def __init__(self, numerical_features=None):
         if numerical_features is None:
-            numerical_features = ['temperature', 'humidity', 'wind_speed', 'visibility',
-                                  'solar_radiation', 'rainfall', 'snowfall']
+            numerical_features = [
+                'temperature', 'humidity', 'wind_speed', 'visibility',
+                'solar_radiation', 'rainfall', 'snowfall'
+            ]
         self.numerical_features = numerical_features
-        self.target_column = target_column
         self.pipeline = Pipeline([
             ('power', PowerTransformer()),
             ('robust', RobustScaler(unit_variance=True))
         ])
         self.fitted = False
 
-    def check_skewness(self, y: pd.Series):
-        try:
-            original_skew = y.skew()
-            logger.info(f"Original skewness of {self.target_column}: {original_skew:.4f}")
-            if (y <= 0).any():
-                logger.warning(f"Skipped log/sqrt skewness — {self.target_column} contains zero or negative values.")
-            else:
-                logger.info(f"Log skew: {np.log(y).skew():.4f}")
-                logger.info(f"Log1p skew: {np.log1p(y).skew():.4f}")
-                logger.info(f"Sqrt skew: {np.sqrt(y).skew():.4f}")
-        except Exception as e:
-            logger.exception(f"Error while checking skewness: {e}")
+    def _validate_columns(self, X: pd.DataFrame):
+        """Check if all required numerical features are present in the input data."""
+        missing = set(self.numerical_features) - set(X.columns)
+        if missing:
+            raise ValueError(f"Missing columns in input data: {missing}")
+
 
     def fit(self, X: pd.DataFrame, y: pd.Series = None):
+        self._validate_columns(X)
+        logger.info(f"Fitting scaler on data with shape: {X.shape}")
         self.pipeline.fit(X[self.numerical_features])
         self.fitted = True
-        if y is not None:
-            self.check_skewness(y)
+        logger.info("Scaler pipeline fitted successfully.")
         return self
 
-    def transform(self, X: pd.DataFrame, y: pd.Series = None):
+
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
         if not self.fitted:
             raise RuntimeError("Scaler must be fitted before calling transform.")
         try:
+            self._validate_columns(X)
             X_scaled = X.copy()
             X_scaled[self.numerical_features] = self.pipeline.transform(X[self.numerical_features])
-            if y is not None:
-                y_transformed = np.log1p(y)
-                return X_scaled, y_transformed
+            logger.info(f"Transformed data successfully. Output shape: {X_scaled.shape}")
             return X_scaled
         except Exception as e:
             logger.exception("Error during transform.")
             raise
-
-    def fit_transform(self, X: pd.DataFrame, y: pd.Series = None):
-        return self.fit(X, y).transform(X, y)
-
-    def inverse_transform_target(self, y_transformed: pd.Series):
+    def fit_transform(self, X: pd.DataFrame, y: pd.Series = None) -> pd.DataFrame:
         try:
-            return np.expm1(y_transformed)
+            logger.info("Running fit_transform...")
+            return self.fit(X, y).transform(X)
         except Exception as e:
-            logger.exception("Error during inverse transform of target.")
+            logger.exception("Error during fit_transform.")
             raise
 
     def save_pipeline(self, filepath: str = SCALER_PIPELINE_FILE):
@@ -79,50 +72,19 @@ class FeatureScaler(BaseEstimator, TransformerMixin):
             logger.info(f"Scaler pipeline saved to {rel_path}")
         except Exception as e:
             logger.exception(f"Error while saving scaler pipeline. {e}")
-            raise
-
-    def load_pipeline(self, filepath: str = SCALER_PIPELINE_FILE):
-        try:
-            rel_path = filepath.relative_to(BASE_DIR)
-            self.pipeline = joblib.load(filepath)
-            self.fitted = True
-            logger.info(f"Scaler pipeline loaded from {rel_path}")
-        except Exception as e:
-            logger.exception(f"Error while loading scaler pipeline. {e}")
-            raise
-
 
 
 def main():
     df = pd.read_csv(PROCESSED_FEATURES_FILE) 
-    #splitter = DataSplitter(mode='timeseries')
-    splitter = DataSplitter(mode='random')
-    X_train, y_train, X_val, y_val, X_test, y_test = splitter.split(df, target_column='rented_bike_count')
-
     scaler = FeatureScaler()
-    X_train_scaled, y_train_scaled = scaler.fit_transform(X = X_train, y= y_train)
-    X_val_scaled, y_val_scaled = scaler.transform(X_val, y_val)
-    X_test_scaled, y_test_scaled = scaler.transform(X_test, y_test)
-    
-    # Save scaled features
-    save_split_data(
-        X_train = X_train_scaled,
-        y_train = y_train_scaled,
-        X_val = X_val_scaled,
-        y_val = y_val_scaled,
-        X_test = X_test_scaled,
-        y_test = y_test_scaled
-        )
+    df_scaled = scaler.fit_transform(df)
+    save_csv(df_scaled, SCALED_DATA_FILE)
 
-    scaler.save_pipeline()
+
+ 
 
 
 if __name__ == "__main__":
     main()
 
-# # for prediction
-# from src.components.feature_scaling import FeatureScaler
-# scaler = FeatureScaler(numerical_features=[...])
-# scaler.load_pipeline()
 
-# X_user_input_scaled = scaler.transform(X_user_input)

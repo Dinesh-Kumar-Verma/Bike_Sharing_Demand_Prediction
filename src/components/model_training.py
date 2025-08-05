@@ -19,7 +19,10 @@ from prettytable import PrettyTable
 
 from src.utils.logger import get_logger
 from src.utils.data_loader import load_csv
-from src.utils.config import X_TRAIN_FILE, Y_TRAIN_FILE, X_VAL_FILE, Y_VAL_FILE
+from src.utils.config import (
+    X_TRAIN_PROCESSED_FILE, Y_TRAIN_TRANSFORMED_FILE,
+    X_VAL_PROCESSED_FILE, Y_VAL_TRANSFORMED_FILE
+    )
 
 logger = get_logger("training_pipeline")
 
@@ -143,12 +146,10 @@ class ModelTrainer:
         logger.info(f"Best model: {best_model_name} with R2: {best_score}")
         return best_model, best_model_name, best_params
 
-    def train_final_model(self, model, model_name):
-        X_train = load_csv(X_TRAIN_FILE)
-        y_train = load_csv(Y_TRAIN_FILE).squeeze()
-        X_val = load_csv(X_VAL_FILE)
-        y_val = load_csv(Y_VAL_FILE).squeeze()
-
+    def train_final_model(self, model, model_name,
+                          X_train: pd.DataFrame, y_train: pd.Series,
+                          X_val: pd.DataFrame, y_val: pd.Series):
+        
         X_combined = pd.concat([X_train, X_val])
         y_combined = pd.concat([y_train, y_val])
 
@@ -170,10 +171,10 @@ class ModelTrainer:
 
 
 def main():
-    X_train = load_csv(X_TRAIN_FILE)
-    y_train = load_csv(Y_TRAIN_FILE).squeeze()
-    X_val = load_csv(X_VAL_FILE)
-    y_val = load_csv(Y_VAL_FILE).squeeze()
+    X_train = load_csv(X_TRAIN_PROCESSED_FILE)
+    y_train = load_csv(Y_TRAIN_TRANSFORMED_FILE).squeeze()
+    X_val = load_csv(X_VAL_PROCESSED_FILE)
+    y_val = load_csv(Y_VAL_TRANSFORMED_FILE).squeeze()
 
     model_configs = {
         "XGBoost": {
@@ -201,7 +202,10 @@ def main():
                            is_time_series=False, n_splits=2, log_to_mlflow=True)
 
     best_model, best_model_name, best_params = trainer.train(X_train, y_train, X_val, y_val)
-    final_model, model_path = trainer.train_final_model(best_model, best_model_name)
+    final_model, model_path = trainer.train_final_model(
+        best_model, best_model_name,
+        X_train, y_train, X_val, y_val
+        )
 
     return final_model, model_path, best_model_name
 

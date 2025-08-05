@@ -11,7 +11,7 @@ from sklearn.metrics import (
 
 from src.utils.logger import get_logger
 from src.utils.data_loader import load_csv
-from src.utils.config import X_TEST_FILE, Y_TEST_FILE
+from src.utils.config import X_TEST_PROCESSED_FILE, Y_TEST_TRANSFORMED_FILE
 
 logger = get_logger(name="model_evaluation", log_file="model_evaluation.log")
 
@@ -93,8 +93,8 @@ def run_evaluation(model_path: str = None, x_path: str = None, y_path: str = Non
     Returns:
         dict: Evaluation metrics.
     """
-    X_test = load_csv(X_TEST_FILE)
-    y_test = load_csv(Y_TEST_FILE).squeeze()
+    X_test = load_csv(X_TEST_PROCESSED_FILE)
+    y_test = load_csv(Y_TEST_TRANSFORMED_FILE).squeeze()
     model = joblib.load(model_path) if model_path else load_final_model()
 
     return evaluate_model(model, X_test, y_test, is_log_transformed)

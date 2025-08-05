@@ -7,7 +7,11 @@ from src.utils.config import (
     INTERIM_DATA_DIR,
     X_TRAIN_FILE, Y_TRAIN_FILE,
     X_VAL_FILE, Y_VAL_FILE,
-    X_TEST_FILE, Y_TEST_FILE
+    X_TEST_FILE, Y_TEST_FILE,
+    PROCESSED_DATA_DIR,
+    X_TRAIN_PROCESSED_FILE, Y_TRAIN_TRANSFORMED_FILE,
+    X_VAL_PROCESSED_FILE, Y_VAL_TRANSFORMED_FILE,   
+    X_TEST_PROCESSED_FILE, Y_TEST_TRANSFORMED_FILE
 )
 
 
@@ -111,6 +115,29 @@ def save_split_data(X_train, y_train, X_val, y_val, X_test, y_test):
         y_test.to_csv(Y_TEST_FILE, index=False)
 
         logger.info("Saved Train/Val/Test splits to interim directory.")
+
+    except Exception as e:
+        logger.exception("Failed to save split data: %s", e)
+        raise
+    
+def save_split_processed_transformed_data(
+    X_train_processed, y_train_transformed,
+    X_val_processed, y_val_transformed,
+    X_test_processed, y_test_transformed
+    ):
+    """
+    Save split datasets to CSV files in interim directory.
+    """
+    try:
+        PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
+        X_train_processed.to_csv(X_TRAIN_PROCESSED_FILE, index=False)
+        y_train_transformed.to_csv(Y_TRAIN_TRANSFORMED_FILE, index=False)
+        X_val_processed.to_csv(X_VAL_PROCESSED_FILE, index=False)
+        y_val_transformed.to_csv(Y_VAL_TRANSFORMED_FILE, index=False)
+        X_test_processed.to_csv(X_TEST_PROCESSED_FILE, index=False)
+        y_test_transformed.to_csv(Y_TEST_TRANSFORMED_FILE, index=False)
+
+        logger.info("Saved Train/Val/Test splits to processed directory.")
 
     except Exception as e:
         logger.exception("Failed to save split data: %s", e)

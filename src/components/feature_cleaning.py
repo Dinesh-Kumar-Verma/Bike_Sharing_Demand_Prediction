@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 from src.utils.logger import get_logger
 from src.utils.data_loader import load_csv
-from src.utils.config import RAW_DATA_FILE, CLEANED_FEATURE_FILE
+from src.utils.config import RAW_DATA_FILE, CLEANED_FEATURE_FILE, X_TRAIN_FILE
 from src.utils.data_saver import save_csv
 
 
@@ -41,13 +41,14 @@ class FeatureCleaner(BaseEstimator, TransformerMixin):
         df.columns = [col.strip() for col in df.columns]
         column_mapping = {
             'Date': 'date',
-            'Rented Bike Count': 'rented_bike_count',
             'Hour': 'hour',
             'Temperature(°C)': 'temperature',
+            'Temperature(Â°C)': 'temperature',  # add fallback key
             'Humidity(%)': 'humidity',
             'Wind speed (m/s)': 'wind_speed',
             'Visibility (10m)': 'visibility',
             'Dew point temperature(°C)': 'dew_point_temp',
+            'Dew point temperature(Â°C)': 'dew_point_temp',  # fallback
             'Solar Radiation (MJ/m2)': 'solar_radiation',
             'Rainfall(mm)': 'rainfall',
             'Snowfall (cm)': 'snowfall',
@@ -73,7 +74,7 @@ class FeatureCleaner(BaseEstimator, TransformerMixin):
 
 
 if __name__ == '__main__':
-    df_raw = load_csv(RAW_DATA_FILE)
+    df_raw = load_csv(X_TRAIN_FILE)
     raw_FeatureCleaner = FeatureCleaner()
     df_cleaned = raw_FeatureCleaner.transform(df_raw)
     save_csv(df_cleaned, CLEANED_FEATURE_FILE)

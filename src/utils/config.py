@@ -24,11 +24,11 @@ SCALED_DATA_FILE = PROCESSED_DATA_DIR / "bike_sharing_data_scaled.csv"
 X_FEATURES_FILE = PROCESSED_DATA_DIR / 'X_features.csv'
 Y_TARGET_FILE = PROCESSED_DATA_DIR / 'Y_target.csv'
 
-X_TRAIN_SCALED_FILE = PROCESSED_DATA_DIR / "X_train_scaled.csv"
+X_TRAIN_PROCESSED_FILE = PROCESSED_DATA_DIR / "X_train_processed.csv"
 Y_TRAIN_TRANSFORMED_FILE = PROCESSED_DATA_DIR / "y_train_transformed.csv"
-X_VAL_SCALED_FILE = PROCESSED_DATA_DIR / "X_val_scaled.csv"
+X_VAL_PROCESSED_FILE = PROCESSED_DATA_DIR / "X_val_processed.csv"
 Y_VAL_TRANSFORMED_FILE = PROCESSED_DATA_DIR / "y_val_transformed.csv"
-X_TEST_SCALED_FILE = PROCESSED_DATA_DIR / "X_test_scaled.csv"
+X_TEST_PROCESSED_FILE = PROCESSED_DATA_DIR / "X_test_processed.csv"
 Y_TEST_TRANSFORMED_FILE = PROCESSED_DATA_DIR / "y_test_transformed.csv"
 
 X_TRAIN_FILE = INTERIM_DATA_DIR / "X_train.csv"
