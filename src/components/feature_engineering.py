@@ -114,19 +114,8 @@ def main():
     df_raw = pd.read_csv(CLEANED_FEATURE_FILE)
     fe = FeatureEngineer(run_vif=False)
     df_transformed = fe.transform(df_raw, save_to=PROCESSED_FEATURES_FILE)
-    #df_transformed = fe.transform(df_raw)
-    # After final feature engineering
-    final_features = df_transformed.columns
-    final_features.to_series().to_csv("artifacts/final_features.csv", index=False)
     
-
 
 if __name__ == '__main__':
     main()
     
-    
-# from src.feature_engineering import FeatureEngineer
-
-# def prepare_input_for_model(user_input_df):
-#     fe = FeatureEngineer(run_vif=False)  # No VIF in prod
-#     return fe.transform(user_input_df)

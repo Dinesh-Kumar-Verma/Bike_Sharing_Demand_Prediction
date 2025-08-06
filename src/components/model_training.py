@@ -179,27 +179,30 @@ def main():
     model_configs = {
         "XGBoost": {
             "model": XGBRegressor(),
-            # "params": {
-            #     'n_estimators': [100, 300, 500],
-            #     'alpha': [0.1, 10, 100],
-            #     'learning_rate': [0.1, 1.0]
-            # },
+            "params": {
+                'n_estimators': [100, 300, 500],
+                'alpha': [0.1, 10, 100],
+                'learning_rate': [0.1, 1.0]
+            },
             "run_name": "XGBoost_Tuning"
         },
         "LightGBM": {
             "model": LGBMRegressor(verbose=-1),
-            # "params": {
-            #     'alpha': [0.1, 10, 100],
-            #     'num_leaves': [20, 31, 40],
-            #     'learning_rate': [0.1, 1.0],
-            #     'n_estimators': [100, 300, 500]
-            # },
+            "params": {
+                'alpha': [0.1, 10, 100],
+                'num_leaves': [20, 31, 40],
+                'learning_rate': [0.1, 1.0],
+                'n_estimators': [100, 300, 500]
+            },
             "run_name": "LightGBM_Tuning"
         }
     }
 
+    # trainer = ModelTrainer(model_configs=model_configs, search_type="random", n_iter=5,
+    #                        is_time_series=False, n_splits=2, log_to_mlflow=True)
+    
     trainer = ModelTrainer(model_configs=model_configs, search_type="random", n_iter=5,
-                           is_time_series=False, n_splits=2, log_to_mlflow=True)
+                           is_time_series=False, n_splits=5, log_to_mlflow=True)    
 
     best_model, best_model_name, best_params = trainer.train(X_train, y_train, X_val, y_val)
     final_model, model_path = trainer.train_final_model(

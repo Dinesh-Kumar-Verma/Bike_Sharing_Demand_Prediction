@@ -106,20 +106,5 @@ def main():
     X_train, y_train, X_val, y_val, X_test, y_test = splitter.split(df, target_column='Rented Bike Count')
     save_split_data(X_train, y_train, X_val, y_val, X_test, y_test)
     
-    
-
-
-
-
-
-
-# if __name__ == '__main__':
-#     df = load_csv(PROCESSED_FEATURES_FILE)
-#     #  Random split
-#     # splitter = DataSplitter(mode='random')
-#     # X_train, y_train, X_val, y_val, X_test, y_test = splitter.split(df, target_column='rented_bike_count')
-     
-#      # Timeseries Split
-#     splitter = DataSplitter(mode='timeseries')
-#     X_train, y_train, X_val, y_val, X_test, y_test = splitter.split(df, target_column='rented_bike_count')
-#     save_split_data(X_train, y_train, X_val, y_val, X_test, y_test)
+if __name__ == "__main__":
+    main()

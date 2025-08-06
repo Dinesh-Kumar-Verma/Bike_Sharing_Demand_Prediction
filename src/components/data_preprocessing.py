@@ -53,8 +53,8 @@ class DataPreprocessor:
         try:
             logger.info("Fitting DataPreprocessor pipeline...")
             self.pipeline.fit(X)
-            # joblib.dump(self.pipeline, Path(DATA_PREPROCESSING_PIPELINE_FILE))
-            # logger.info(f"Pipeline saved to: {DATA_PREPROCESSING_PIPELINE_FILE}")
+            joblib.dump(self.pipeline, Path(DATA_PREPROCESSING_PIPELINE_FILE))
+            logger.info(f"Pipeline saved to: {DATA_PREPROCESSING_PIPELINE_FILE}")
             return self
         except Exception as e:
             logger.exception(f"Error during fit: {e}")
@@ -66,8 +66,8 @@ class DataPreprocessor:
             X_processed = self.pipeline.fit_transform(X)
             
             # Correctly save the trained pipeline
-            # joblib.dump(self.pipeline, Path(DATA_PREPROCESSING_PIPELINE_FILE))
-            # logger.info(f"Pipeline saved to: {DATA_PREPROCESSING_PIPELINE_FILE}")
+            joblib.dump(self.pipeline, Path(DATA_PREPROCESSING_PIPELINE_FILE))
+            logger.info(f"Pipeline saved to: {DATA_PREPROCESSING_PIPELINE_FILE}")
             
             return X_processed
         except Exception as e:

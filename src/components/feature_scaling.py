@@ -36,17 +36,18 @@ class FeatureScaler(BaseEstimator, TransformerMixin):
 
     def fit(self, X: pd.DataFrame, y: pd.Series = None):
         self._validate_columns(X)
-        logger.info(f"Fitting scaler on data with shape: {X.shape}")
+        logger.info(f"Fitting scaler pipeline data with shape: {X.shape}")
         self.pipeline.fit(X[self.numerical_features])
         self.fitted = True
         logger.info("Scaler pipeline fitted successfully.")
         return self
-
-
+        
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
         if not self.fitted:
             raise RuntimeError("Scaler must be fitted before calling transform.")
         try:
+            logger.info("Running transform...")
+            logger.info(f"Transforming data with shape: {X.shape}")
             self._validate_columns(X)
             X_scaled = X.copy()
             X_scaled[self.numerical_features] = self.pipeline.transform(X[self.numerical_features])
@@ -54,11 +55,18 @@ class FeatureScaler(BaseEstimator, TransformerMixin):
             return X_scaled
         except Exception as e:
             logger.exception("Error during transform.")
-            raise
+        raise      
+    
     def fit_transform(self, X: pd.DataFrame, y: pd.Series = None) -> pd.DataFrame:
         try:
             logger.info("Running fit_transform...")
-            return self.fit(X, y).transform(X)
+            self._validate_columns(X)
+            X_scaled = X.copy()
+            X_scaled[self.numerical_features] = self.pipeline.fit_transform(X[self.numerical_features])
+            self.fitted = True
+            logger.info("Scaler pipeline fit_transform completed successfully.")
+            self.save_pipeline()
+            return X_scaled
         except Exception as e:
             logger.exception("Error during fit_transform.")
             raise
@@ -82,9 +90,8 @@ def main():
 
 
  
-
-
 if __name__ == "__main__":
     main()
+
 
 

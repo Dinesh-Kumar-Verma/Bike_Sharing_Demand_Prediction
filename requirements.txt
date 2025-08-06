@@ -1,3 +1,11 @@
-logger-1.4
-gdown-5.2.0 # for google drive 
-boto3-1.39.4
+pandas
+numpy
+scikit-learn
+statsmodels
+xgboost
+lightgbm
+mlflow
+gdown
+boto3
+prettytable
+streamlit

@@ -10,6 +10,7 @@ PROCESSED_DATA_DIR = BASE_DIR / "data" / "processed"
 INTERIM_DATA_DIR = BASE_DIR / "data" / "interim"
 TIMESERIES_FOLDS_DIR = INTERIM_DATA_DIR / 'timeseries_folds'
 ARTIFACTS_DIR = BASE_DIR / "artifacts"
+EVALUATION_DIR = ARTIFACTS_DIR / "evaluation"
 MODELS_DIR = ARTIFACTS_DIR / "models"
 PIPELINES_DIR = ARTIFACTS_DIR / "pipelines"
 

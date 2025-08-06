@@ -78,13 +78,3 @@ if __name__ == '__main__':
     raw_FeatureCleaner = FeatureCleaner()
     df_cleaned = raw_FeatureCleaner.transform(df_raw)
     save_csv(df_cleaned, CLEANED_FEATURE_FILE)
-
-# from sklearn.pipeline import Pipeline
-# from src.components.feature_cleaning import FeatureCleaner
-
-# feature_cleaning_pipeline = Pipeline([
-#     ('feature_cleaning', FeatureCleaner())
-# ])
-
-# # Sample use
-# # cleaned_df = feature_cleaning_pipeline.fit_transform(raw_df)

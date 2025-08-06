@@ -1,0 +1,54 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# DVC
+.dvc
+.dvcignore
+data.dvc
+artifacts.dvc
+/data/
+artifacts/pipelines/scaler_pipeline.pkl
+
+# Python virtual environment
+.venv
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Test artifacts
+.pytest_cache
+.coverage
+
+# MLflow
+mlruns/
+
+# Logs
+logs/
+
+# Notebooks
+*.ipynb
+
+# IDE files
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# This file
+.dockerignore
+Dockerfile
+README.md
+
+# misc. file
+test.py
+notes_and_references.txt
+artifacts\pipelines\scaler_pipeline.pkl

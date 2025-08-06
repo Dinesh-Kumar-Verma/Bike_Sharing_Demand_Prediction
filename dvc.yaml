@@ -1,0 +1,83 @@
+
+stages:
+  data_ingestion:
+    cmd: python src/components/data_ingestion.py
+    deps:
+      - src/components/data_ingestion.py
+      - src/utils/config.py
+      - src/utils/data_fetcher.py
+      - src/utils/logger.py
+    outs:
+      - data/raw/bike_sharing_data.csv
+
+  data_validation:
+    cmd: python src/components/data_validation.py
+    deps:
+      - src/components/data_validation.py
+      - src/utils/config.py
+      - src/utils/data_loader.py
+      - src/utils/logger.py
+      - data/raw/bike_sharing_data.csv
+
+  data_preprocessing:
+    cmd: python src/components/data_preprocessing.py
+    deps:
+      - src/components/data_preprocessing.py
+      - src/components/feature_cleaning.py
+      - src/components/feature_engineering.py
+      - src/components/feature_scaling.py
+      - src/utils/config.py
+      - src/utils/data_loader.py
+      - src/utils/data_saver.py
+      - src/utils/data_splitter.py
+      - src/utils/logger.py
+      - data/raw/bike_sharing_data.csv
+    outs:
+      - artifacts/data/X_train.csv
+      - artifacts/data/y_train.csv
+      - artifacts/data/X_val.csv
+      - artifacts/data/y_val.csv
+      - artifacts/data/X_test.csv
+      - artifacts/data/y_test.csv
+      - artifacts/data/X_train_processed.csv
+      - artifacts/data/y_train_transformed.csv
+      - artifacts/data/X_val_processed.csv
+      - artifacts/data/y_val_transformed.csv
+      - artifacts/data/X_test_processed.csv
+      - artifacts/data/y_test_transformed.csv
+      - artifacts/pipelines/data_preprocessing_pipeline.pkl
+
+  model_training:
+    cmd: python src/components/model_training.py
+    deps:
+      - src/components/model_training.py
+      - src/utils/config.py
+      - src/utils/data_loader.py
+      - src/utils/logger.py
+      - artifacts/data/X_train_processed.csv
+      - artifacts/data/y_train_transformed.csv
+      - artifacts/data/X_val_processed.csv
+      - artifacts/data/y_val_transformed.csv
+    outs:
+      - artifacts/models/XGBoost_final_model.pkl
+      - artifacts/models/LightGBM_final_model.pkl
+
+  model_evaluation:
+    cmd: python src/components/model_evaluation.py
+    deps:
+      - src/components/model_evaluation.py
+      - src/utils/config.py
+      - src/utils/data_loader.py
+      - src/utils/logger.py
+      - artifacts/models/XGBoost_final_model.pkl
+      - artifacts/models/LightGBM_final_model.pkl
+      - artifacts/data/X_test_processed.csv
+      - artifacts/data/y_test_transformed.csv
+    metrics:
+      - evaluation_table.txt:
+          cache: false
+    plots:
+      - residuals_plot.png:
+          cache: false
+      - actual_vs_predicted.png:
+          cache: false
