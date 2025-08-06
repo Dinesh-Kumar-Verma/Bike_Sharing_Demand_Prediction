@@ -23,6 +23,7 @@ from src.utils.config import (
     X_TRAIN_PROCESSED_FILE, Y_TRAIN_TRANSFORMED_FILE,
     X_VAL_PROCESSED_FILE, Y_VAL_TRANSFORMED_FILE
     )
+from src.utils.params import load_params
 
 logger = get_logger("training_pipeline")
 
@@ -176,41 +177,79 @@ def main():
     X_val = load_csv(X_VAL_PROCESSED_FILE)
     y_val = load_csv(Y_VAL_TRANSFORMED_FILE).squeeze()
 
+    params = load_params()
+    model_training_params = params.get('model_training', {})
+    lgbm_params = model_training_params.get('lgbm', {})
+    xgb_params = model_training_params.get('xgb', {})
+
     model_configs = {
         "XGBoost": {
             "model": XGBRegressor(),
             "params": {
-                'n_estimators': [100, 300, 500],
-                'alpha': [0.1, 10, 100],
-                'learning_rate': [0.1, 1.0]
+                'n_estimators': xgb_params['n_estimators'],
+                'learning_rate': xgb_params['learning_rate'],
+                'max_depth': xgb_params['max_depth']
             },
             "run_name": "XGBoost_Tuning"
         },
         "LightGBM": {
             "model": LGBMRegressor(verbose=-1),
             "params": {
-                'alpha': [0.1, 10, 100],
-                'num_leaves': [20, 31, 40],
-                'learning_rate': [0.1, 1.0],
-                'n_estimators': [100, 300, 500]
+                'n_estimators': lgbm_params['n_estimators'],
+                'learning_rate': lgbm_params['learning_rate'],
+                'num_leaves': lgbm_params['num_leaves']
             },
             "run_name": "LightGBM_Tuning"
         }
     }
 
-    # trainer = ModelTrainer(model_configs=model_configs, search_type="random", n_iter=5,
-    #                        is_time_series=False, n_splits=2, log_to_mlflow=True)
-    
-    trainer = ModelTrainer(model_configs=model_configs, search_type="random", n_iter=5,
+    trainer = ModelTrainer(model_configs=model_configs, search_type="grid_search", n_iter=5,
                            is_time_series=False, n_splits=5, log_to_mlflow=True)    
 
+    # Train and evaluate models
     best_model, best_model_name, best_params = trainer.train(X_train, y_train, X_val, y_val)
-    final_model, model_path = trainer.train_final_model(
-        best_model, best_model_name,
-        X_train, y_train, X_val, y_val
-        )
 
-    return final_model, model_path, best_model_name
+    # Combine train and validation data for final model training
+    X_combined = pd.concat([X_train, X_val])
+    y_combined = pd.concat([y_train, y_val])
+
+    model_dir = Path("artifacts") / "models"
+    model_dir.mkdir(parents=True, exist_ok=True)
+
+    # Train and save XGBoost model
+    xgb_model = XGBRegressor(
+        n_estimators=xgb_params['n_estimators'][0], # Taking the first value from the list for final training
+        learning_rate=xgb_params['learning_rate'][0],
+        max_depth=xgb_params['max_depth'][0]
+    )
+    xgb_model.fit(X_combined, y_combined)
+    xgb_model_path = model_dir / "XGBoost_final_model.pkl"
+    joblib.dump(xgb_model, xgb_model_path)
+    logger.info(f"Saved XGBoost model to {xgb_model_path}")
+    with mlflow.start_run(run_name="XGBoost_FinalModel"):
+        mlflow.log_artifact(str(xgb_model_path), artifact_path="final_model")
+        mlflow.log_params(xgb_model.get_params())
+        trainer._log_model(xgb_model, "XGBoost", X_combined.head(2).astype(np.float64))
+
+    # Train and save LightGBM model
+    lgbm_model = LGBMRegressor(
+        n_estimators=lgbm_params['n_estimators'][0], # Taking the first value from the list for final training
+        learning_rate=lgbm_params['learning_rate'][0],
+        num_leaves=lgbm_params['num_leaves'][0],
+        verbose=-1
+    )
+    lgbm_model.fit(X_combined, y_combined)
+    lgbm_model_path = model_dir / "LightGBM_final_model.pkl"
+    joblib.dump(lgbm_model, lgbm_model_path)
+    logger.info(f"Saved LightGBM model to {lgbm_model_path}")
+    with mlflow.start_run(run_name="LightGBM_FinalModel"):
+        mlflow.log_artifact(str(lgbm_model_path), artifact_path="final_model")
+        mlflow.log_params(lgbm_model.get_params())
+        trainer._log_model(lgbm_model, "LightGBM", X_combined.head(2).astype(np.float64))
+
+    # The return values of main() might need adjustment if you only need the best model for downstream tasks
+    # For now, I'll return the best model as before, but both will be saved.
+    return best_model, model_dir / f"{best_model_name}_final_model.pkl", best_model_name
 
 
 if __name__ == "__main__":

@@ -1,3 +1,4 @@
+import warnings
 import pandas as pd
 from pathlib import Path
 import numpy as np
@@ -6,11 +7,18 @@ from sklearn.pipeline import Pipeline
 from src.components.feature_cleaning import FeatureCleaner
 from src.components.feature_engineering import FeatureEngineer
 from src.components.feature_scaling import FeatureScaler
-from src.utils.config import DATA_PREPROCESSING_PIPELINE_FILE, X_TRAIN_FILE, RAW_DATA_FILE, PROCESSED_FEATURES_FILE
 from src.utils.logger import get_logger
 from src.utils.data_loader import load_csv
 from src.utils.data_splitter import DataSplitter
 from src.utils.data_saver import save_split_data, save_split_processed_transformed_data, save_csv
+from src.utils.config import (
+    DATA_PREPROCESSING_PIPELINE_FILE,
+    X_TRAIN_FILE, Y_TRAIN_FILE,
+    X_VAL_FILE, Y_VAL_FILE,
+    X_TEST_FILE, Y_TEST_FILE,
+    )
+from src.utils.params import load_params
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 logger = get_logger(name="data_preprocessor", log_file="data_preprocessor.log")
 
@@ -106,26 +114,29 @@ class DataPreprocessor:
 
 def main():
     try:
-        # Load the raw data file
-        raw_data_file = load_csv(RAW_DATA_FILE)
-        
-        # Split and save the splitted data
-        splitter = DataSplitter(mode='random')
-        X_train, y_train, X_val, y_val, X_test, y_test = splitter.split(raw_data_file, target_column='Rented Bike Count')
-        save_split_data(X_train, y_train, X_val, y_val, X_test, y_test)
+        params = load_params()
+        feature_engineering_params = params['feature_engineering']
+        run_vif = feature_engineering_params['run_vif']
         
         # Preprocess the data
-        df = load_csv(X_TRAIN_FILE)
-        processor = DataPreprocessor()
-        X_train_processed = processor.fit_transform(df)
+        X_train = load_csv(X_TRAIN_FILE)
+        y_train = load_csv(Y_TRAIN_FILE)
+        X_val = load_csv(X_VAL_FILE)
+        y_val = load_csv(Y_VAL_FILE)
+        X_test = load_csv(X_TEST_FILE)
+        y_test = load_csv(Y_TEST_FILE)
+        
+
+        processor = DataPreprocessor(run_vif=run_vif)
+        X_train_processed = processor.fit_transform(X_train)
         X_val_processed = processor.transform(X_val)
         X_test_processed = processor.transform(X_test)
         
         # Apply log transformation on target variable
-        y_train_transformed = np.log1p(y_train)
+        y_train_transformed = np.log1p(y_train) 
         y_val_transformed = np.log1p(y_val) 
         y_test_transformed = np.log1p(y_test)
-        
+       
         # Save the final Processed and Transformed data
         save_split_processed_transformed_data(
         X_train_processed, y_train_transformed,

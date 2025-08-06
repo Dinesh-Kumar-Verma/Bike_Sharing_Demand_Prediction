@@ -4,6 +4,7 @@ import mlflow
 import subprocess
 import matplotlib.pyplot as plt
 import seaborn as sns
+import warnings
 
 from pathlib import Path
 from prettytable import PrettyTable
@@ -15,6 +16,9 @@ from src.utils.data_loader import load_csv
 from src.utils.config import X_TEST_PROCESSED_FILE, Y_TEST_TRANSFORMED_FILE, EVALUATION_DIR
 
 logger = get_logger(name="model_evaluation", log_file="model_evaluation.log")
+
+# Suppress specific MLflow warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="mlflow.types.utils")
 
 
 def load_final_model(model_dir: str = "artifacts/models", model_suffix: str = "final_model.pkl"):
@@ -33,7 +37,7 @@ def log_evaluation_plots(y_true, y_pred):
     plt.title("Residuals Distribution")
     plt.xlabel("Residuals")
     plt.savefig(EVALUATION_DIR / "residuals_plot.png")
-    mlflow.log_artifact("residuals_plot.png")
+    mlflow.log_artifact(str(EVALUATION_DIR / "residuals_plot.png"))
     plt.close()
 
     # Actual vs Predicted
@@ -43,8 +47,7 @@ def log_evaluation_plots(y_true, y_pred):
     plt.xlabel("Actual")
     plt.ylabel("Predicted")
     plt.savefig(EVALUATION_DIR / "actual_vs_predicted.png")
-    mlflow.log_artifact("actual_vs_predicted.png")
-    plt.close()
+    mlflow.log_artifact(str(EVALUATION_DIR / "actual_vs_predicted.png"))
 
 
 def evaluate_model(model, X_test, y_test, is_log_transformed: bool = False):
@@ -88,7 +91,7 @@ def evaluate_model(model, X_test, y_test, is_log_transformed: bool = False):
             mlflow.log_metric(f"test_{k.replace(' ', '_').lower()}", v)
 
         # Log model
-        mlflow.sklearn.log_model(model, "model_evaluation_artifact",
+        mlflow.sklearn.log_model(model, name="model_evaluation_artifact",
                                  signature=infer_signature(X_test, model.predict(X_test)),
                                  input_example=X_test.head().astype(np.float64))
 

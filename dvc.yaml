@@ -1,4 +1,3 @@
-
 stages:
   data_ingestion:
     cmd: python src/components/data_ingestion.py
@@ -7,9 +6,22 @@ stages:
       - src/utils/config.py
       - src/utils/data_fetcher.py
       - src/utils/logger.py
+      - src/utils/data_splitter.py
+      - src/utils/data_saver.py
+    params:
+      - data_split.test_size
+      - data_split.val_size
+      - data_split.random_state
+      - data_split.mode
+      - data_split.time_series_splits
     outs:
       - data/raw/bike_sharing_data.csv
-
+      - data/interim/X_train.csv
+      - data/interim/y_train.csv
+      - data/interim/X_val.csv
+      - data/interim/y_val.csv
+      - data/interim/X_test.csv
+      - data/interim/y_test.csv
   data_validation:
     cmd: python src/components/data_validation.py
     deps:
@@ -18,7 +30,6 @@ stages:
       - src/utils/data_loader.py
       - src/utils/logger.py
       - data/raw/bike_sharing_data.csv
-
   data_preprocessing:
     cmd: python src/components/data_preprocessing.py
     deps:
@@ -29,24 +40,23 @@ stages:
       - src/utils/config.py
       - src/utils/data_loader.py
       - src/utils/data_saver.py
-      - src/utils/data_splitter.py
       - src/utils/logger.py
-      - data/raw/bike_sharing_data.csv
+      - data/interim/X_train.csv
+      - data/interim/y_train.csv
+      - data/interim/X_val.csv
+      - data/interim/y_val.csv
+      - data/interim/X_test.csv
+      - data/interim/y_test.csv
+    params:
+      - feature_engineering
     outs:
-      - artifacts/data/X_train.csv
-      - artifacts/data/y_train.csv
-      - artifacts/data/X_val.csv
-      - artifacts/data/y_val.csv
-      - artifacts/data/X_test.csv
-      - artifacts/data/y_test.csv
-      - artifacts/data/X_train_processed.csv
-      - artifacts/data/y_train_transformed.csv
-      - artifacts/data/X_val_processed.csv
-      - artifacts/data/y_val_transformed.csv
-      - artifacts/data/X_test_processed.csv
-      - artifacts/data/y_test_transformed.csv
+      - data/processed/X_train_processed.csv
+      - data/processed/y_train_transformed.csv
+      - data/processed/X_val_processed.csv
+      - data/processed/y_val_transformed.csv
+      - data/processed/X_test_processed.csv
+      - data/processed/y_test_transformed.csv
       - artifacts/pipelines/data_preprocessing_pipeline.pkl
-
   model_training:
     cmd: python src/components/model_training.py
     deps:
@@ -54,14 +64,15 @@ stages:
       - src/utils/config.py
       - src/utils/data_loader.py
       - src/utils/logger.py
-      - artifacts/data/X_train_processed.csv
-      - artifacts/data/y_train_transformed.csv
-      - artifacts/data/X_val_processed.csv
-      - artifacts/data/y_val_transformed.csv
+      - data/processed/X_train_processed.csv
+      - data/processed/y_train_transformed.csv
+      - data/processed/X_val_processed.csv
+      - data/processed/y_val_transformed.csv
+    params:
+      - model_training
     outs:
       - artifacts/models/XGBoost_final_model.pkl
       - artifacts/models/LightGBM_final_model.pkl
-
   model_evaluation:
     cmd: python src/components/model_evaluation.py
     deps:
@@ -71,13 +82,13 @@ stages:
       - src/utils/logger.py
       - artifacts/models/XGBoost_final_model.pkl
       - artifacts/models/LightGBM_final_model.pkl
-      - artifacts/data/X_test_processed.csv
-      - artifacts/data/y_test_transformed.csv
+      - data/processed/X_test_processed.csv
+      - data/processed/y_test_transformed.csv
     metrics:
-      - evaluation_table.txt:
+      - artifacts/evaluation/evaluation_table.txt:
           cache: false
     plots:
-      - residuals_plot.png:
+      - artifacts/evaluation/residuals_plot.png:
           cache: false
-      - actual_vs_predicted.png:
+      - artifacts/evaluation/actual_vs_predicted.png:
           cache: false

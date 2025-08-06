@@ -1,6 +1,6 @@
 import pandas as pd
 from src.utils.logger import get_logger
-from src.utils.config import RAW_DATA_FILE
+from src.utils.config import X_TRAIN_FILE
 from src.utils.data_loader import load_csv
 
 logger = get_logger(name='data_validation', log_file='data_validation.log')
@@ -42,7 +42,7 @@ class DataValidator:
     def run_all_checks(self):
         self.df
         self.check_expected_columns([
-            'Date', 'Rented Bike Count', 'Hour', 'Temperature(°C)',
+            'Date', 'Hour', 'Temperature(°C)',
             'Humidity(%)', 'Wind speed (m/s)', 'Visibility (10m)',
             'Dew point temperature(°C)', 'Solar Radiation (MJ/m2)',
             'Rainfall(mm)', 'Snowfall (cm)', 'Seasons',
@@ -57,7 +57,7 @@ def data_validation():
     logger.info('\n' + '-' * 80)
     logger.info('Starting data_validation...')
     try:
-        df = load_csv(RAW_DATA_FILE)
+        df = load_csv(X_TRAIN_FILE)
         validator = DataValidator(df)
         validator.run_all_checks()
         logger.info('Completed data_validation.')
