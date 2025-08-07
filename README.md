@@ -31,6 +31,7 @@ graph TD
     B --&gt; C{AWS ECS}
     C --&gt; D[Streamlit App]
     D --&gt; E{ML Model}
+
 ```
 
 ### Low-Level Architecture
@@ -59,6 +60,7 @@ graph TD
     end
 
     H --&gt; M
+
 ```
 
 ## Deployment
@@ -78,22 +80,30 @@ The application is deployed to AWS using a CI/CD pipeline with GitHub Actions. W
 
 ## Getting Started
 
-### Prerequisites
+### Initial Setup
 
-*   Python 3.8 or higher
-*   DVC
-*   MLflow
-*   Docker
+Before running the project, ensure you have the necessary data and that the project structure is correctly set up.
 
-### Installation
+1.  **Data Acquisition**:
+    This project relies on the `bike_sharing_data.csv` dataset. This file is not included in the repository due to its size and to keep the repository clean. Please obtain the dataset and place it in the `data/raw/` directory.
 
-1.  Clone the repository:
-    ```bash
-    git clone https://github.com/your-username/Bike_Sharing_Demand_Prediction.git
-    ```
-2.  Install the required packages:
+2.  **Directory Structure**:
+    The project is designed to automatically create necessary directories (e.g., `data/processed`, `data/interim`, `artifacts`, `logs`, `S3/files`, `mlruns`) upon execution, thanks to the configurations in `src/utils/config.py`. You do not need to manually create these folders.
+
+3.  **Install Dependencies**:
+    Ensure all required Python packages are installed. It's recommended to use a virtual environment.
     ```bash
     pip install -r requirements.txt
+    ```
+    Alternatively, if you prefer using `pyproject.toml`:
+    ```bash
+    pip install .
+    ```
+
+4.  **Run DVC Pipeline**:
+    After setting up the data and installing dependencies, run the DVC pipeline to process data, train the model, and generate artifacts.
+    ```bash
+    dvc repro
     ```
 
 ## Usage

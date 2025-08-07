@@ -8,7 +8,7 @@ data_split:
   time_series_splits: 5
 
 feature_engineering:
-  run_vif: false
+  run_vif: False
 
 model_training:
   lgbm:

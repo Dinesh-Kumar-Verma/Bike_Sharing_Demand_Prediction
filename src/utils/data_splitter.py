@@ -17,7 +17,7 @@ class DataSplitter:
 
     def __init__(self, 
                  train_size=0.7, 
-                 val_size=0.15, 
+                 val_size=0.15,     
                  test_size=0.15,
                  mode='random',  # 'random' or 'timeseries'
                  time_series_splits=5, 

@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import joblib
 import mlflow
 import subprocess
@@ -13,7 +14,7 @@ from mlflow.models.signature import infer_signature
 
 from src.utils.logger import get_logger
 from src.utils.data_loader import load_csv
-from src.utils.config import X_TEST_PROCESSED_FILE, Y_TEST_TRANSFORMED_FILE, EVALUATION_DIR
+from src.utils.config import X_TEST_PROCESSED_FILE, Y_TEST_TRANSFORMED_FILE, EVALUATION_DIR, MODELS_DIR, X_TRAIN_PROCESSED_FILE
 
 logger = get_logger(name="model_evaluation", log_file="model_evaluation.log")
 
@@ -22,8 +23,8 @@ warnings.filterwarnings("ignore", category=UserWarning, module="mlflow.types.uti
 
 
 def load_final_model(model_dir: str = "artifacts/models", model_suffix: str = "final_model.pkl"):
-    model_dir_path = Path(model_dir)
-    final_model_path = next(model_dir_path.glob(f"*_{model_suffix}"))
+    # model_dir_path = Path(model_dir)
+    final_model_path = next(MODELS_DIR.glob(f"*_{model_suffix}"))
     logger.info(f"Loading model from {final_model_path}")
     return joblib.load(final_model_path)
 
@@ -48,6 +49,19 @@ def log_evaluation_plots(y_true, y_pred):
     plt.ylabel("Predicted")
     plt.savefig(EVALUATION_DIR / "actual_vs_predicted.png")
     mlflow.log_artifact(str(EVALUATION_DIR / "actual_vs_predicted.png"))
+    
+def feature_importance_log(model):
+    X_train_processed = load_csv(X_TRAIN_PROCESSED_FILE)
+    feat_imp = pd.Series(model.feature_importances_, index=X_train_processed.columns)
+    plt.figure(figsize=(10, 5))
+    plt.title('Top 20 Feature Importance')
+
+    # Reverse the order of feat_imp to make maximum values appear on the upper side
+    feat_imp.nlargest(20)[::-1].plot(kind='barh', color='red')
+    plt.xlabel('Relative Importance')
+    plt.savefig(EVALUATION_DIR / "feature_importance.png")
+    mlflow.log_artifact(str(EVALUATION_DIR / "feature_importance.png"))
+    plt.close()
 
 
 def evaluate_model(model, X_test, y_test, is_log_transformed: bool = False):
@@ -109,6 +123,8 @@ def evaluate_model(model, X_test, y_test, is_log_transformed: bool = False):
         # Log visualizations and table
         mlflow.log_artifact(EVALUATION_DIR / "evaluation_table.txt")
         log_evaluation_plots(y_test, y_pred)
+        feature_importance_log(model)
+        
 
     return metrics
 

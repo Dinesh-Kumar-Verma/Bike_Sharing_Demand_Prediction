@@ -49,3 +49,21 @@ DATA_PREPROCESSING_PIPELINE_FILE = PIPELINES_DIR / "data_preprocessing_pipeline.
 # Create directories if they don’t exist
 RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
 PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
+INTERIM_DATA_DIR.mkdir(parents=True, exist_ok=True)
+TIMESERIES_FOLDS_DIR.mkdir(parents=True, exist_ok=True)
+ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
+EVALUATION_DIR.mkdir(parents=True, exist_ok=True)
+MODELS_DIR.mkdir(parents=True, exist_ok=True)
+PIPELINES_DIR.mkdir(parents=True, exist_ok=True)
+
+# Additional directories from project structure
+LOGS_DIR = BASE_DIR / "logs"
+LOGS_DIR.mkdir(parents=True, exist_ok=True)
+
+S3_FILES_DIR = BASE_DIR / "S3" / "files"
+S3_FILES_DIR.mkdir(parents=True, exist_ok=True)
+
+# MLflow typically creates its own directories, but ensuring the base exists doesn't hurt
+MLRUNS_DIR = BASE_DIR / "mlruns"
+MLRUNS_DIR.mkdir(parents=True, exist_ok=True)
+

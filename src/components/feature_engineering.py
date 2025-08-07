@@ -5,13 +5,14 @@ from statsmodels.stats.outliers_influence import variance_inflation_factor
 from src.utils.logger import get_logger
 from src.utils.data_saver import save_csv
 from src.utils.config import CLEANED_FEATURE_FILE, PROCESSED_FEATURES_FILE
+from src.utils.params import load_params
 
 
 logger = get_logger(name='feature_engineering', log_file='feature_engineering.log')
 
 
 class FeatureEngineer(BaseEstimator, TransformerMixin):
-    def __init__(self, run_vif: bool = True, drop_features: list = None):
+    def __init__(self, run_vif: bool = False, drop_features: list = None):
         """
         Initialize the feature engineer.
 
@@ -112,7 +113,11 @@ class FeatureEngineer(BaseEstimator, TransformerMixin):
 
 def main():
     df_raw = pd.read_csv(CLEANED_FEATURE_FILE)
-    fe = FeatureEngineer(run_vif=False)
+    params = load_params()
+    feature_engineering_params = params['feature_engineering']
+    run_vif = feature_engineering_params['run_vif']
+    fe = FeatureEngineer(run_vif=run_vif)
+
     df_transformed = fe.transform(df_raw, save_to=PROCESSED_FEATURES_FILE)
     
 
