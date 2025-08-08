@@ -3,9 +3,8 @@
 .gitattributes
 
 # DVC
+# DVC
 .dvcignore
-data.dvc
-artifacts.dvc
 /data/
 artifacts/pipelines/scaler_pipeline.pkl
 
