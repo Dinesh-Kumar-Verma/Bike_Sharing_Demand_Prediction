@@ -55,9 +55,9 @@ jobs:
 
       - name: Stop and remove existing container (if running)
         run: |
-          docker ps -q --filter "name=streamlit-app" | grep -q . && docker stop streamlit-app && docker rm streamlit-app || echo "No existing container"
+          docker ps -q --filter "name=streamlit_app" | grep -q . && docker stop streamlit_app && docker rm streamlit_app || echo "No existing container"
 
       - name: Run new Docker container for Streamlit app
         run: |
-          docker run -d --name streamlit-app -p 8501:8501 \
+          docker run -d --name streamlit_app -p 8501:8501 \
             "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO }}:latest"

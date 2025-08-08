@@ -199,8 +199,8 @@ stages:
       size: 24343
     - path: src/components/model_training.py
       hash: md5
-      md5: e52ea65597e892fb13331662eaf42b58
-      size: 10699
+      md5: 5b07a02d6896a6e8c455cf149b367cbb
+      size: 9217
     - path: src/utils/config.py
       hash: md5
       md5: 246b0fd0a80750c830ad9524aa2e3f68
@@ -241,25 +241,19 @@ stages:
             - 5
             - 7
     outs:
-    - path: artifacts/models/LightGBM_final_model.pkl
+    - path: artifacts/models
       hash: md5
-      md5: 056fc92491e997fc8f43c1c482a622fb
-      size: 200546
-    - path: artifacts/models/XGBoost_final_model.pkl
-      hash: md5
-      md5: 5618f829b72a780bcca3e2edcbd37392
-      size: 118246
+      md5: 9c0ed332051ea3caff676a515fa58b1d.dir
+      size: 1870816
+      nfiles: 1
   model_evaluation:
     cmd: python src/components/model_evaluation.py
     deps:
-    - path: artifacts/models/LightGBM_final_model.pkl
+    - path: artifacts/models
       hash: md5
-      md5: 056fc92491e997fc8f43c1c482a622fb
-      size: 200546
-    - path: artifacts/models/XGBoost_final_model.pkl
-      hash: md5
-      md5: 5618f829b72a780bcca3e2edcbd37392
-      size: 118246
+      md5: 9c0ed332051ea3caff676a515fa58b1d.dir
+      size: 1870816
+      nfiles: 1
     - path: data/processed/X_test_processed.csv
       hash: md5
       md5: c5b7c0d129ecf1f8e9578098f4a63a58
@@ -287,13 +281,13 @@ stages:
     outs:
     - path: artifacts/evaluation/actual_vs_predicted.png
       hash: md5
-      md5: 1abcc789b0b6ea4f435064453d1e105c
-      size: 42569
+      md5: 953b90677fd6a23552ac7ca36e12f0a6
+      size: 40594
     - path: artifacts/evaluation/evaluation_table.txt
       hash: md5
-      md5: efafbdd0553ece42577b08b6d675d73f
+      md5: 78739d810dfb642deb53935b80509755
       size: 349
     - path: artifacts/evaluation/residuals_plot.png
       hash: md5
-      md5: f892dec62989ee41cc1e5e572d061f4c
-      size: 20885
+      md5: aeb2debdad6eed7acca1cae449171bee
+      size: 21684

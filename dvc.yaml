@@ -71,8 +71,7 @@ stages:
     params:
       - model_training
     outs:
-      - artifacts/models/XGBoost_final_model.pkl
-      - artifacts/models/LightGBM_final_model.pkl
+      - artifacts/models
   model_evaluation:
     cmd: python src/components/model_evaluation.py
     deps:
@@ -80,8 +79,7 @@ stages:
       - src/utils/config.py
       - src/utils/data_loader.py
       - src/utils/logger.py
-      - artifacts/models/XGBoost_final_model.pkl
-      - artifacts/models/LightGBM_final_model.pkl
+      - artifacts/models
       - data/processed/X_test_processed.csv
       - data/processed/y_test_transformed.csv
     metrics:

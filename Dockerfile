@@ -17,4 +17,4 @@ RUN pip install -r requirements_docker.txt
 # Expose port (Streamlit default is 8501)
 EXPOSE 8501
 
-CMD ["streamlit", "run", "streamlit_app.py"]    
+CMD ["streamlit", "run", "streamlit_app.py", "--server.address=0.0.0.0"]  

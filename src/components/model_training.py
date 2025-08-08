@@ -21,7 +21,8 @@ from src.utils.logger import get_logger
 from src.utils.data_loader import load_csv
 from src.utils.config import (
     X_TRAIN_PROCESSED_FILE, Y_TRAIN_TRANSFORMED_FILE,
-    X_VAL_PROCESSED_FILE, Y_VAL_TRANSFORMED_FILE
+    X_VAL_PROCESSED_FILE, Y_VAL_TRANSFORMED_FILE, 
+    MODELS_DIR
     )
 from src.utils.params import load_params
 
@@ -87,6 +88,14 @@ class ModelTrainer:
         train_adj_r2 = self._adjusted_r2(train_r2, len(X_train), X_train.shape[1])
         val_adj_r2 = self._adjusted_r2(val_r2, len(X_val), X_val.shape[1])
 
+        table = PrettyTable()
+        table.field_names = ["Metric", "Train", "Validation"]
+        table.add_row(["R2 Score", round(train_r2, 4), round(val_r2, 4)])
+        table.add_row(["Adjusted R2", round(train_adj_r2, 4), round(val_adj_r2, 4)])
+        table.add_row(["MSE", round(train_mse, 4), round(val_mse, 4)])
+        table.add_row(["RMSE", round(train_rmse, 4), round(val_rmse, 4)])
+        table.add_row(["MAE", round(train_mae, 4), round(val_mae, 4)])
+
         if self.log_to_mlflow and run_name:
             with mlflow.start_run(run_name=run_name):
                 mlflow.log_metrics({
@@ -99,15 +108,9 @@ class ModelTrainer:
                 })
                 if hasattr(model, "get_params"):
                     mlflow.log_params(model.get_params())
+                
+                mlflow.log_text(str(table), "training_evaluation_summary.txt")
                 self._log_model(model, model_name, X_train.head(2).astype(np.float64))
-
-        table = PrettyTable()
-        table.field_names = ["Metric", "Train", "Validation"]
-        table.add_row(["R2 Score", round(train_r2, 4), round(val_r2, 4)])
-        table.add_row(["Adjusted R2", round(train_adj_r2, 4), round(val_adj_r2, 4)])
-        table.add_row(["MSE", round(train_mse, 4), round(val_mse, 4)])
-        table.add_row(["RMSE", round(train_rmse, 4), round(val_rmse, 4)])
-        table.add_row(["MAE", round(train_mae, 4), round(val_mae, 4)])
 
         return table, val_r2
 
@@ -157,15 +160,15 @@ class ModelTrainer:
         model.fit(X_combined, y_combined)
         logger.info("Retrained model on combined train + validation set.")
 
-        model_dir = Path("artifacts") / "models"
-        model_dir.mkdir(parents=True, exist_ok=True)
-        model_path = model_dir / f"{model_name}_final_model.pkl"
+        MODELS_DIR.mkdir(parents=True, exist_ok=True)
+        model_path = MODELS_DIR / f"{model_name}_final_model.pkl"
         joblib.dump(model, model_path)
-        logger.info(f"Saved model to {model_path}")
+        logger.info(f"Saved model to {str(model_path)}")
 
         with mlflow.start_run(run_name=f"{model_name}_FinalModel"):
             mlflow.log_artifact(str(model_path), artifact_path="final_model")
-            mlflow.log_params(model.get_params())
+            if hasattr(model, "get_params"):
+                mlflow.log_params(model.get_params())
             self._log_model(model, model_name, X_combined.head(2).astype(np.float64))
 
         return model, model_path
@@ -209,47 +212,19 @@ def main():
     # Train and evaluate models
     best_model, best_model_name, best_params = trainer.train(X_train, y_train, X_val, y_val)
 
-    # Combine train and validation data for final model training
-    X_combined = pd.concat([X_train, X_val])
-    y_combined = pd.concat([y_train, y_val])
-
-    model_dir = Path("artifacts") / "models"
-    model_dir.mkdir(parents=True, exist_ok=True)
-
-    # Train and save XGBoost model
-    xgb_model = XGBRegressor(
-        n_estimators=xgb_params['n_estimators'][0], # Taking the first value from the list for final training
-        learning_rate=xgb_params['learning_rate'][0],
-        max_depth=xgb_params['max_depth'][0]
+    # Retrain the best model on the combined dataset
+    logger.info(f"Retraining the best model ({best_model_name}) on the full dataset.")
+    final_model, final_model_path = trainer.train_final_model(
+        model=best_model,
+        model_name=best_model_name,
+        X_train=X_train,
+        y_train=y_train,
+        X_val=X_val,
+        y_val=y_val
     )
-    xgb_model.fit(X_combined, y_combined)
-    xgb_model_path = model_dir / "XGBoost_final_model.pkl"
-    joblib.dump(xgb_model, xgb_model_path)
-    logger.info(f"Saved XGBoost model to {xgb_model_path}")
-    with mlflow.start_run(run_name="XGBoost_FinalModel"):
-        mlflow.log_artifact(str(xgb_model_path), artifact_path="final_model")
-        mlflow.log_params(xgb_model.get_params())
-        trainer._log_model(xgb_model, "XGBoost", X_combined.head(2).astype(np.float64))
+    logger.info(f"Final model saved to: {final_model_path}")
 
-    # Train and save LightGBM model
-    lgbm_model = LGBMRegressor(
-        n_estimators=lgbm_params['n_estimators'][0], # Taking the first value from the list for final training
-        learning_rate=lgbm_params['learning_rate'][0],
-        num_leaves=lgbm_params['num_leaves'][0],
-        verbose=-1
-    )
-    lgbm_model.fit(X_combined, y_combined)
-    lgbm_model_path = model_dir / "LightGBM_final_model.pkl"
-    joblib.dump(lgbm_model, lgbm_model_path)
-    logger.info(f"Saved LightGBM model to {lgbm_model_path}")
-    with mlflow.start_run(run_name="LightGBM_FinalModel"):
-        mlflow.log_artifact(str(lgbm_model_path), artifact_path="final_model")
-        mlflow.log_params(lgbm_model.get_params())
-        trainer._log_model(lgbm_model, "LightGBM", X_combined.head(2).astype(np.float64))
-
-    # The return values of main() might need adjustment if you only need the best model for downstream tasks
-    # For now, I'll return the best model as before, but both will be saved.
-    return best_model, model_dir / f"{best_model_name}_final_model.pkl", best_model_name
+    return final_model, final_model_path, best_model_name
 
 
 if __name__ == "__main__":
