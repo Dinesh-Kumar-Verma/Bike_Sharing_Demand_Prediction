@@ -1,14 +1,6 @@
 # Stage 1: Build and pull DVC artifacts
 FROM python:3.13.5-slim as builder
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y libgomp1 && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /app
-
-# Copy project files
-COPY . .
-
 # Install DVC and its dependencies for pulling artifacts
 RUN pip install dvc[s3]==3.50.1
 
@@ -17,6 +9,9 @@ RUN --mount=type=secret,id=aws,target=/root/.aws/credentials dvc pull --force
 
 # Stage 2: Final application image
 FROM python:3.13.5-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y libgomp1 && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
