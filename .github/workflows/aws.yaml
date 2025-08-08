@@ -58,7 +58,8 @@ jobs:
 
       - name: Stop and remove existing container (if running)
         run: |
-          docker ps -q --filter "name=streamlit_app" | grep -q . && docker stop streamlit_app && docker rm streamlit_app || echo "No existing container"
+          docker stop streamlit_app || true
+          docker rm streamlit_app || true
 
       - name: Run new Docker container for Streamlit app
         run: |
