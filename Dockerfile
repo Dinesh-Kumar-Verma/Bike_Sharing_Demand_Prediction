@@ -1,27 +1,23 @@
-# Stage 1: Build and pull DVC artifacts
-FROM python:3.13.5-slim as builder
-
-# Install DVC and its dependencies for pulling artifacts
-RUN pip install dvc[s3]==3.50.1
-
-# Pull DVC artifacts using a secret mount
-RUN --mount=type=secret,id=aws,target=/root/.aws/credentials dvc pull --force
-
-# Stage 2: Final application image
 FROM python:3.13.5-slim
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y libgomp1 && rm -rf /var/lib/apt/lists/*
-
+# Set work directory
 WORKDIR /app
 
-# Copy application code and downloaded artifacts from the builder stage
-COPY --from=builder /app/ . 
+# Install dependencies
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
-# Install application dependencies
-RUN pip install -r requirements_docker.txt
+# Install DVC (with S3 support if needed)
+RUN pip install --no-cache-dir dvc[s3]
 
-# Expose port
+# Copy project files including DVC metadata
+COPY . .
+
+# Pull DVC data using AWS credentials from secret
+RUN --mount=type=secret,id=aws,target=/root/.aws/credentials \
+    dvc pull --force
+
+# Expose port for app
 EXPOSE 8501
 
 # Run the Streamlit app

@@ -10,7 +10,9 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed for DVC repo recognition
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -33,13 +35,15 @@ jobs:
           echo "[default]" > aws_credentials
           echo "aws_access_key_id = ${{ secrets.AWS_ACCESS_KEY_ID }}" >> aws_credentials
           echo "aws_secret_access_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> aws_credentials
-          docker build --no-cache --secret id=aws,src=aws_credentials -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+
+          # Build image and mount AWS creds for DVC pull
+          docker build --secret id=aws,src=aws_credentials -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
   Continuous-Deployment:
     needs: Continuous-Integration
-    runs-on: self-hosted  # EC2 runner (Ensure it's configured as a GitHub runner)
+    runs-on: self-hosted  # EC2 runner
     steps:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
