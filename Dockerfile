@@ -11,13 +11,18 @@ WORKDIR /app
 COPY . .
 
 # Install the dependencies
+RUN pip install -r requirements_docker.txt
+
+# Set up AWS credentials for DVC
 ARG AWS_ACCESS_KEY_ID
 ARG AWS_SECRET_ACCESS_KEY
 ARG AWS_DEFAULT_REGION
-ENV AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-ENV AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-ENV AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
-RUN pip install -r requirements_docker.txt
+RUN mkdir -p ~/.aws && \
+    echo "[default]" > ~/.aws/credentials && \
+    echo "aws_access_key_id = $AWS_ACCESS_KEY_ID" >> ~/.aws/credentials && \
+    echo "aws_secret_access_key = $AWS_SECRET_ACCESS_KEY" >> ~/.aws/credentials && \
+    echo "[default]" > ~/.aws/config && \
+    echo "region = $AWS_DEFAULT_REGION" >> ~/.aws/config
 
 # Pull the DVC-tracked files
 RUN dvc pull --force
