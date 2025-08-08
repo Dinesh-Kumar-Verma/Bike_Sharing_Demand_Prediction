@@ -9,8 +9,8 @@ WORKDIR /app
 # Copy project files
 COPY . .
 
-# Install dependencies
-RUN pip install -r requirements_docker.txt
+# Install DVC and its dependencies for pulling artifacts
+RUN pip install dvc[s3]==3.50.1
 
 # Pull DVC artifacts using a secret mount
 RUN --mount=type=secret,id=aws,target=/root/.aws/credentials dvc pull --force
@@ -22,6 +22,9 @@ WORKDIR /app
 
 # Copy application code and downloaded artifacts from the builder stage
 COPY --from=builder /app/ . 
+
+# Install application dependencies
+RUN pip install -r requirements_docker.txt
 
 # Expose port
 EXPOSE 8501
