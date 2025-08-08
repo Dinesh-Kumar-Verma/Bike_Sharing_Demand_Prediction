@@ -12,6 +12,10 @@ COPY . .
 
 # Install the dependencies
 RUN pip install -r requirements_docker.txt
+
+# Pull the DVC-tracked files
+RUN dvc pull --force
+
 #RUN pip install --no-cache-dir -r requirements.txt
 
 # Expose port (Streamlit default is 8501)

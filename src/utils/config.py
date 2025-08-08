@@ -67,3 +67,8 @@ S3_FILES_DIR.mkdir(parents=True, exist_ok=True)
 MLRUNS_DIR = BASE_DIR / "mlruns"
 MLRUNS_DIR.mkdir(parents=True, exist_ok=True)
 
+
+# AWS ENV CREDENTIAL
+AWS_ACCESS_KEY_ID_ENV_KEY = "AWS_ACCESS_KEY_ID"
+AWS_SECRET_ACCESS_KEY_ENV_KEY = "AWS_SECRET_ACCESS_KEY"
+REGION_NAME = "us-east-1"
