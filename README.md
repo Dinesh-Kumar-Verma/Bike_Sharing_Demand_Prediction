@@ -1,69 +1,130 @@
-# Bike Sharing Demand Prediction
+# 🚲 Bike Sharing Demand Prediction
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)
-![Status](https://img.shields.io/badge/status-in%20progress-yellow.svg)
+![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg)
 
-> **Note:** This project is a work in progress. The features and architecture described below represent the intended final state of the project. It is not yet complete.
+***
 
-This project predicts the demand for bike sharing based on various features like weather, season, and time. The model is built using a machine learning pipeline that includes data ingestion, validation, preprocessing, training, and evaluation.
+## 📈 Business Context
 
-## Features
+Public bike-sharing systems in cities like Seoul help reduce traffic congestion, cut pollution, and promote sustainable transport.  
+However, their success depends on **matching bike availability with fluctuating demand**.  
+Too many bikes lead to wasted resources, while shortages frustrate users and reduce trust.
 
-*   **Data Ingestion**: Fetches data from a specified source (e.g., Google Drive).
-*   **Data Validation**: Checks for missing values, duplicates, and expected columns.
-*   **Data Preprocessing**: Cleans, engineers, and scales features for model training.
-*   **Model Training**: Trains a machine learning model to predict bike sharing demand.
-*   **Model Evaluation**: Evaluates the model's performance using various metrics.
-*   **DVC Pipeline**: Uses DVC to create a reproducible machine learning pipeline.
-*   **MLflow Integration**: Logs experiments, models, and metrics using MLflow.
-*   **Streamlit App**: A web-based application for interacting with the model.
-*   **Docker Deployment**: The application is containerized using Docker for easy deployment.
-*   **CI/CD with GitHub Actions**: A CI/CD pipeline is set up with GitHub Actions to automate the deployment process.
+Accurate demand forecasting using historical usage, weather, and time-based data enables operators to:
 
-## Architecture
+- ✅ Ensure bikes are available when and where needed  
+- 💰 Reduce operational costs  
+- 😊 Improve user satisfaction and loyalty  
+
+By adopting a **data-driven forecasting approach**, bike-sharing providers can shift from reactive allocation to proactive, efficient fleet management, ensuring consistent service and higher profitability.
+
+***
+
+## 🧭 Problem Statement
+
+Urban centers like **Seoul** are experiencing rapid adoption of public bike-sharing systems to address:
+
+- 🚗 Traffic congestion  
+- 💨 Pollution reduction  
+- 🌿 Sustainable transportation promotion  
+
+However, these systems face a critical challenge:  
+
+> **How do we ensure the right number of bikes are available at the right time and location to meet dynamic user demand?**
+
+### 📉 Without accurate forecasting:
+- 🚲 Bikes sit idle during low demand, wasting resources  
+- ⏳ Users face unavailability during rush hours, lowering satisfaction  
+
+### 📌 Objective
+Build an end-to-end ML pipeline that can forecast hourly demand for rented bikes, using historical rental records combined with weather and temporal data.
+
+***
+
+## 📊 Exploratory Data Analysis (EDA) Insights
+
+Key insights derived from the exploratory data analysis:
+
+### 📝 Data Overview
+*   The dataset contains hourly bike rental counts along with weather and holiday information for one year (December 2017 to November 2018).
+*   No missing or duplicate values were found, indicating a clean dataset for analysis.
+
+### 📉 Distribution of Variables
+*   The target variable, `rented_bike_count`, exhibits a right-skewed distribution, suggesting that lower bike rental counts are more frequent, with fewer instances of very high demand.
+*   `Temperature`, `dew_point_temp`, and `Humidity` are approximately normally distributed.
+*   `Wind speed`, `solar_radiation`, `rainfall`, and `snowfall` show right-skewed distributions, with outliers representing extreme weather conditions (e.g., high winds, heavy precipitation) which are naturally less common.
+*   `Visibility` is left-skewed, indicating that high visibility is more common.
+
+### 📈 Relationships with Bike Rental Demand
+*   **Hourly Patterns**: Bike rental demand is significantly lower during early morning hours (0-5 AM) and peaks during morning (8-9 AM) and evening (5-7 PM) rush hours, aligning with typical commuting patterns.
+*   **Temperature**: A strong positive correlation exists; as temperature increases, bike rental demand generally rises.
+*   **Humidity**: An inverse relationship is observed; higher humidity levels tend to correlate with lower bike rental counts.
+*   **Wind Speed**: Increased wind speeds are generally associated with decreased bike rental demand.
+*   **Seasons**: Summer and Spring experience the highest bike rental counts, while Winter records the lowest demand, highlighting the impact of seasonal weather on usage.
+*   **Holiday vs. Non-Holiday**: Non-holiday periods consistently show significantly higher bike rental activity compared to holidays.
+*   **Functioning Day**: Bike rental counts are zero on non-functioning days, as expected.
+*   **Precipitation (Rainfall/Snowfall)**: High rainfall and snowfall events drastically reduce bike rental demand.
+*   **Solar Radiation**: Higher solar radiation generally corresponds to increased bike rental counts, indicating a preference for sunny conditions.
+
+These insights are crucial for feature engineering and model development, helping to identify the most influential factors affecting bike-sharing demand.
+
+***
+
+## ✨ Features
+
+*   **Data Ingestion**: 📥 Automates the process of fetching and preparing raw data, ensuring a consistent and reliable input for the pipeline.
+*   **Data Validation**: 🛡️ Implements rigorous checks to maintain data quality, identifying and handling missing values, duplicates, and schema inconsistencies.
+*   **Data Preprocessing**: ⚙️ Transforms raw data into a clean, normalized, and feature-rich format, optimizing it for model training through techniques like feature cleaning, engineering, and scaling.
+*   **Model Training**: 🚀 Develops and trains a high-performance machine learning model capable of accurately predicting bike sharing demand.
+*   **Model Evaluation**: 📊 Provides comprehensive evaluation of the model's performance using key metrics and visualizations, ensuring its reliability and effectiveness.
+*   **DVC Pipeline**: 🔗 Ensures reproducibility and version control for the entire machine learning workflow, from data acquisition to model deployment, making experiments traceable and collaborative.
+*   **MLflow Integration**: 📈 Facilitates experiment tracking, model management, and reproducible runs, enabling efficient iteration and comparison of different model versions.
+*   **Streamlit App**: 🌐 Offers an intuitive and interactive web interface for users to explore predictions and interact with the deployed model.
+*   **Docker Deployment**: 🐳 Containerizes the application for seamless and consistent deployment across various environments, eliminating dependency issues.
+*   **CI/CD with GitHub Actions**: 🔄 Automates the build, test, and deployment processes, ensuring rapid and reliable delivery of updates and new features.
+
+***
+
+## 🏗️ Architecture
 
 ### High-Level Architecture
 
 ```mermaid
 graph TD
-    A[GitHub] --&gt;|CI/CD| B(AWS ECR)
-    B --&gt; C{AWS ECS}
-    C --&gt; D[Streamlit App]
-    D --&gt; E{ML Model}
+    A[GitHub] -->|CI/CD| B(AWS ECR)
+    B --> C{AWS ECS}
+    C --> D[Streamlit App]
+    D --> E{ML Model}
 
 ```
 
 ### Low-Level Architecture
 
-```mermaid
-graph TD
-    subgraph "GitHub Actions CI/CD"
-        A[Push to main] --&gt; B{Build Docker Image}
-        B --&gt; C{Push to AWS ECR}
-        C --&gt; D{Deploy to AWS ECS}
-    end
+The project's low-level architecture can be broken down into three main flows:
 
-    subgraph "AWS"
-        subgraph "VPC"
-            E[AWS ECS] --&gt; F[Docker Container]
-            F --&gt; G[Streamlit App]
-            G --&gt; H{ML Model}
-        end
-    end
+1.  **CI/CD Pipeline (GitHub Actions)**:
+    *   **Push to main**: Any code push to the `main` branch triggers the CI/CD pipeline.
+    *   **Build & Push Docker Image**: A Docker image containing the Streamlit application and the trained ML model is built and pushed to AWS Elastic Container Registry (ECR).
+    *   **Deploy to AWS ECS**: The updated Docker image is then deployed to AWS Elastic Container Service (ECS), ensuring the application is always running with the latest code.
 
-    subgraph "DVC Pipeline"
-        I[Data Ingestion] --&gt; J[Data Validation]
-        J --&gt; K[Data Preprocessing]
-        K --&gt; L[Model Training]
-        L --&gt; M[Model Evaluation]
-    end
+2.  **Application Flow (Streamlit & AWS)**:
+    *   **User Input**: Users interact with the Streamlit web application through a user-friendly interface.
+    *   **Streamlit App**: The Streamlit application processes user requests and sends them to the underlying ML model for prediction.
+    *   **ML Model (Prediction)**: The deployed machine learning model performs real-time bike demand predictions based on the input received from the Streamlit app.
+    *   **Loads Model From AWS S3 (Served Models)**: The ML model loads its trained parameters and artifacts from a dedicated S3 bucket, ensuring that the latest and most accurate model is always used for predictions.
 
-    H --&gt; M
+3.  **ML Pipeline (DVC & AWS S3)**:
+    *   **AWS S3 (Raw Data)**: Raw bike-sharing demand data is stored and versioned in an AWS S3 bucket.
+    *   **Data Ingestion & Preprocessing**: The DVC pipeline initiates data ingestion from S3, followed by comprehensive data preprocessing steps (cleaning, feature engineering, scaling).
+    *   **Model Training & Evaluation**: The preprocessed data is then used to train the machine learning model, which is subsequently evaluated for performance and accuracy.
+    *   **Stores Artifacts to AWS S3 (Trained Models/Artifacts)**: All trained models, evaluation metrics, and other relevant artifacts are securely stored and versioned in another AWS S3 bucket, ensuring reproducibility and traceability of experiments.
 
-```
+    The trained models and artifacts stored in the ML Pipeline's S3 bucket are then made available to the Application Flow for serving predictions.
 
-## Deployment
+***
+
+## 🚀 Deployment
 
 The application is deployed to AWS using a CI/CD pipeline with GitHub Actions. When code is pushed to the `main` branch, the following steps are executed:
 
@@ -71,14 +132,46 @@ The application is deployed to AWS using a CI/CD pipeline with GitHub Actions. W
 2.  **Push to AWS ECR**: The Docker image is pushed to a private repository in Amazon Elastic Container Registry (ECR).
 3.  **Deploy to AWS ECS**: The application is deployed to Amazon Elastic Container Service (ECS) as a Fargate task, which runs the Docker container.
 
-## Roadmap
+***
 
-*   [ ] Implement user authentication for the Streamlit app.
-*   [ ] Add more advanced feature engineering techniques.
-*   [ ] Experiment with different machine learning models.
-*   [ ] Create a more detailed dashboard for model evaluation.
+## 📈 Model Performance
 
-## Getting Started
+The trained model demonstrates strong predictive capabilities on unseen data. The following metrics were obtained during the evaluation phase:
+
+```
++-------------+---------------------+
+|    Metric   | Test (Actual Scale) |
++-------------+---------------------+
+|   R2 Score  |        0.9245       |
+| Adjusted R2 |        0.9215       |
+|     MSE     |      30536.728      |
+|     RMSE    |       174.7476      |
+|     MAE     |       95.2794       |
++-------------+---------------------+
+
+```
+
+These results indicate that the model explains approximately 92% of the variance in bike demand, with a mean absolute error of around 95 units, demonstrating its effectiveness in real-world scenarios.
+
+***
+
+## 🛠️ Technologies Used
+
+*   **Python**: Core programming language.
+*   **DVC (Data Version Control)**: For MLOps, data and model versioning, and pipeline management.
+*   **MLflow**: For experiment tracking, model registry, and reproducible runs.
+*   **Scikit-learn**: For machine learning models and utilities.
+*   **LightGBM & XGBoost**: Gradient boosting frameworks for model training.
+*   **Pandas & NumPy**: For data manipulation and numerical operations.
+*   **Streamlit**: For building interactive web applications.
+*   **Docker**: For containerization and deployment.
+*   **AWS (ECR, ECS)**: For cloud deployment infrastructure.
+*   **GitHub Actions**: For Continuous Integration and Continuous Deployment (CI/CD).
+*   **Mermaid**: For diagramming in Markdown.
+
+***
+
+## 🚀 Getting Started
 
 ### Initial Setup
 
@@ -106,7 +199,7 @@ Before running the project, ensure you have the necessary data and that the proj
     dvc repro
     ```
 
-## Usage
+## 💻 Usage
 
 1.  Run the DVC pipeline:
     ```bash
@@ -119,57 +212,79 @@ Before running the project, ensure you have the necessary data and that the proj
     ```
 3.  Open your browser and navigate to `http://localhost:8501` to use the Streamlit app.
 
-## Project Structure
+***
+
+## 📂 Project Structure
 
 ```
 .
-├── artifacts
-│   ├── data
-│   ├── models
-│   └── pipelines
-├── data
-│   ├── interim
-│   ├── processed
-│   └── raw
-├── logs
-├── mlruns
-├── S3
-├── src
-│   ├── components
-│   │   ├── data_ingestion.py
-│   │   ├── data_preprocessing.py
-│   │   ├── data_validation.py
-│   │   ├── feature_cleaning.py
-│   │   ├── feature_engineering.py
-│   │   ├── feature_scaling.py
-│   │   ├── model_evaluation.py
-│   │   └── model_training.py
-│   └── utils
-│       ├── config.py
-│       ├── data_fetcher.py
-│       ├── data_loader.py
-│       ├── data_saver.py
-│       ├── data_splitter.py
-│       └── logger.py
-├── .dvc
 ├── .dockerignore
 ├── .dvcignore
 ├── .gitattributes
 ├── .gitignore
-├── data.dvc
-├── dvc.yaml
+├── Bike_Sharing_Demand_Predictionn.ipynb
 ├── Dockerfile
+├── dvc.lock
+├── dvc.yaml
 ├── params.yaml
 ├── pyproject.toml
 ├── README.md
+├── requirements_docker.txt
 ├── requirements.txt
-└── streamlit_app.py
+├── streamlit_app.py
+├── .dvc/
+│   ├── .gitignore
+│   ├── config
+│   ├── config.local
+│   ├── cache/
+│   │   └── ... (contains DVC cache files)
+│   └── tmp/
+│       └── ... (contains DVC temporary files)
+├── .git/
+│   └── ... (Git repository files)
+├── .github/
+│   └── workflows/
+│       └── aws.yaml
+├── .venv/
+│   └── ... (Python virtual environment)
+├── artifacts/
+│   ├── data/
+│   ├── models/
+│   └── pipelines/
+├── data/
+│   ├── interim/
+│   ├── processed/
+│   └── raw/
+├── logs/
+├── mlruns/                # MLflow experiment tracking logs
+├── S3/                    # Local directory for simulating S3
+└── src/
+    ├── __init__.py
+    ├── components/
+    │   ├── __init__.py
+    │   ├── data_ingestion.py
+    │   ├── data_preprocessing.py
+    │   ├── data_validation.py
+    │   ├── model_evaluation.py
+    │   ├── model_prediction.py
+    │   ├── model_training.py
+    └── utils/
+        ├── __init__.py
+        ├── aws_config.py
+        ├── config.py
+        ├── logger.py
+        ├── params.py
+        ├── predictor.py
 ```
 
-## Contributing
+***
+
+## 🙌 Contributing
 
 Contributions are welcome! Please feel free to submit a pull request.
 
-## License
+***
+
+## 📜 License
 
 This project is licensed under the MIT License.
