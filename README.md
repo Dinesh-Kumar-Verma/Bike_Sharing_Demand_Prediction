@@ -190,6 +190,8 @@ Before running the project, ensure you have the necessary data and that the proj
     ```
     For running in Goole Colab
     ```bash
+    ! git clone https://github.com/Dinesh-Kumar-Verma/Bike_Sharing_Demand_Prediction.git
+    %cd /content/Bike_Sharing_Demand_Prediction
     ! pip install -r requirements_colab.txt
     ```    
     Alternatively, if you prefer using `pyproject.toml`:
