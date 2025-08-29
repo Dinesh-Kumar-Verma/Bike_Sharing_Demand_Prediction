@@ -1,6 +1,6 @@
 stages:
   data_ingestion:
-    cmd: python src/components/data_ingestion.py
+    cmd: python -m src.components.data_ingestion
     deps:
       - src/components/data_ingestion.py
       - src/utils/config.py
@@ -23,7 +23,7 @@ stages:
       - data/interim/X_test.csv
       - data/interim/y_test.csv
   data_validation:
-    cmd: python src/components/data_validation.py
+    cmd: python -m src.components.data_validation
     deps:
       - src/components/data_validation.py
       - src/utils/config.py
@@ -31,7 +31,7 @@ stages:
       - src/utils/logger.py
       - data/raw/bike_sharing_data.csv
   data_preprocessing:
-    cmd: python src/components/data_preprocessing.py
+    cmd: python -m src.components.data_preprocessing
     deps:
       - src/components/data_preprocessing.py
       - src/components/feature_cleaning.py
@@ -58,7 +58,7 @@ stages:
       - data/processed/y_test_transformed.csv
       - artifacts/pipelines/data_preprocessing_pipeline.pkl
   model_training:
-    cmd: python src/components/model_training.py
+    cmd: python -m src.components.model_training
     deps:
       - src/components/model_training.py
       - src/utils/config.py
@@ -73,7 +73,7 @@ stages:
     outs:
       - artifacts/models
   model_evaluation:
-    cmd: python src/components/model_evaluation.py
+    cmd: python -m src.components.model_evaluation
     deps:
       - src/components/model_evaluation.py
       - src/utils/config.py
