@@ -1,0 +1,18 @@
+# Core application dependencies for Colab
+# We assume that numpy, pandas, scikit-learn, etc., are provided by the Colab environment.
+
+alembic==1.16.4
+boto3==1.39.4
+cloudpickle==3.1.1
+fastapi==0.116.1
+gdown==5.2.0
+GitPython==3.1.44
+lightgbm==4.6.0
+mlflow==3.1.4
+prettytable==3.16.0
+SQLAlchemy==2.0.41
+statsmodels==0.14.5
+streamlit==1.47.1
+uvicorn==0.35.0
+waitress==3.0.2
+xgboost==3.0.2
