@@ -130,6 +130,7 @@ def evaluate_model(model, X_test, y_test, is_log_transformed: bool = False):
 
 
 def run_evaluation(model_path: str = None, x_path: str = None, y_path: str = None, is_log_transformed: bool = True):
+    mlflow.set_experiment("bike_sharing_demand_prediction")
     X_test = load_csv(x_path) if x_path else load_csv(X_TEST_PROCESSED_FILE)
     y_test = load_csv(y_path) if y_path else load_csv(Y_TEST_TRANSFORMED_FILE).squeeze()
     model = joblib.load(model_path) if model_path else load_final_model()

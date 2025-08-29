@@ -181,6 +181,7 @@ def main():
     y_val = load_csv(Y_VAL_TRANSFORMED_FILE).squeeze()
 
     params = load_params()
+    mlflow.set_experiment("bike_sharing_demand_prediction")
     model_training_params = params.get('model_training', {})
     lgbm_params = model_training_params.get('lgbm', {})
     xgb_params = model_training_params.get('xgb', {})

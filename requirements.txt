@@ -58,7 +58,6 @@ MarkupSafe==3.0.2
 matplotlib==3.10.3
 matplotlib-inline==0.1.7
 mlflow==3.1.4
-mlflow-skinny==3.1.4
 narwhals==2.0.1
 nest-asyncio==1.6.0
 numpy==2.3.1
@@ -88,7 +87,6 @@ pyparsing==3.2.3
 PySocks==1.7.1
 python-dateutil==2.9.0.post0
 pytz==2025.2
-pywin32==311
 PyYAML==6.0.2
 pyzmq==27.0.0
 referencing==0.36.2
