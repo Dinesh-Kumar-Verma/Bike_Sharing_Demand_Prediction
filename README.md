@@ -188,9 +188,13 @@ Before running the project, ensure you have the necessary data and that the proj
     ```bash
     pip install -r requirements.txt
     ```
+    For running in Goole Colab
+    ```bash
+    ! pip install -r requirements_colab.txt
+    ```    
     Alternatively, if you prefer using `pyproject.toml`:
     ```bash
-    pip install .
+    pip install -e .
     ```
 
 4.  **Run DVC Pipeline**:
