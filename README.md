@@ -2,6 +2,7 @@
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python Version](https://img.shields.io/badge/python-3.11%2B-blue.svg)
+![Python Version Developed](https://img.shields.io/badge/python-3.13.5%2B-blue.svg)
 
 ***
 
